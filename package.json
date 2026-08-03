@@ -1,0 +1,20 @@
+{
+  "name": "realdelvalle-inventario",
+  "version": "1.0.0",
+  "description": "Sistema de control de inventario Real del Valle - 3 plantas",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node importar_directo.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
