@@ -193,9 +193,9 @@ const PLANTAS=[
 ];
 
 const LITROS_TARIMA={
-  blanco_750:396, blanco_1000:529, blanco_1750:462,
+  blanco_750:396, blanco_1000:529, blanco_1750:546,
   blanco_fuerte_1000:529,
-  repo_750:396,   repo_1000:529,   repo_1750:462
+  repo_750:396,   repo_1000:529,   repo_1750:546
 };
 
 // Cajas actualizadas: caja_b=Litro(B+R 1L), caja_750b=750 Blanco, caja_750r=750 Reposado
@@ -203,10 +203,10 @@ const PRODUCTOS=[
   {id:'blanco_750',  nom:'Tequila Blanco 750 ml',    tipo:'Blanco',  mats:{bot_750:528, etiq_34b:528, tapa_n:528, caja_750b:44, separador:44}},
   {id:'blanco_1000', nom:'Tequila Blanco 1,000 ml',  tipo:'Blanco',  mats:{bot_1l:528,  etiq_1b:528,  tapa_n:528, caja_b:44,    separador:44}},
   {id:'blanco_fuerte_1000', nom:'Tequila Blanco Fuerte 1,000 ml', tipo:'Blanco', mats:{bot_1l:528, etiq_bf1:528, tapa_n:528, caja_b:44, separador:44}},
-  {id:'blanco_1750', nom:'Tequila Blanco 1,750 ml',  tipo:'Blanco',  mats:{bot_1750:264,etiq_1750b:264,corcho_1750:264,caja_b:44,separador:44}},
+  {id:'blanco_1750', nom:'Tequila Blanco 1,750 ml',  tipo:'Blanco',  mats:{bot_1750:312,etiq_1750b:312,corcho_1750:312,caja_1750:52,separador:52}},
   {id:'repo_750',    nom:'Tequila Reposado 750 ml',  tipo:'Reposado',mats:{bot_750:528, etiq_34r:528, tapa_n:528, caja_750r:44, separador:44}},
   {id:'repo_1000',   nom:'Tequila Reposado 1,000 ml',tipo:'Reposado',mats:{bot_1l:528,  etiq_1r:528,  tapa_n:528, caja_b:44,    separador:44}},
-  {id:'repo_1750',   nom:'Tequila Reposado 1,750 ml',tipo:'Reposado',mats:{bot_1750:264,etiq_1750r:264,corcho_1750:264,caja_b:44,separador:44}}
+  {id:'repo_1750',   nom:'Tequila Reposado 1,750 ml',tipo:'Reposado',mats:{bot_1750:312,etiq_1750r:312,corcho_1750:312,caja_1750:52,separador:52}}
 ];
 
 // Catálogo numerado RDV01-RDV26 · Orden: Botellas → Etiquetas → Insumos
@@ -234,6 +234,7 @@ const MATS=[
   {id:'caja_b',     rdv:'RDV17', nom:'Caja Litro',              cat:'Insumos'},
   {id:'caja_750b',  rdv:'RDV18', nom:'Caja 750 Blanco',         cat:'Insumos'},
   {id:'caja_750r',  rdv:'RDV19', nom:'Caja 750 Reposado',       cat:'Insumos'},
+  {id:'caja_1750',  rdv:'RDV31', nom:'Caja 1,750 ml',           cat:'Insumos'},
   {id:'separador',  rdv:'RDV20', nom:'Separador',               cat:'Insumos'},
   {id:'cb_1lb',     rdv:'RDV21', nom:'Cód. Barras 1L Blanco',   cat:'Insumos'},
   {id:'cb_34b',     rdv:'RDV22', nom:'Cód. Barras 3/4 Blanco',  cat:'Insumos'},
