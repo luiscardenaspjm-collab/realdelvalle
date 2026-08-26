@@ -284,6 +284,7 @@ function setToken(t){ sessionStorage.setItem('rdv_token', t); }
 function clearToken(){ sessionStorage.removeItem('rdv_token'); sessionStorage.removeItem('rdv_rol'); sessionStorage.removeItem('rdv_user'); }
 function getRol(){ return sessionStorage.getItem('rdv_rol')||'viewer'; }
 function isAdmin(){ return getRol()==='admin'; }
+function isViewerDeg(){ return getRol()==='viewer_deg'; }
 
 async function api(path, opts={}){
   const headers = { 'Content-Type':'application/json', ...(opts.headers||{}) };
@@ -372,24 +373,34 @@ function toast(msg,err=false){const t=document.getElementById('toast');t.textCon
 function render(){
   document.getElementById('hdr-date').innerHTML=new Date().toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
   const admin=isAdmin();
-  // Para viewer: solo Dashboard, Inventario, Trazabilidad
+  const viewerDeg=isViewerDeg();
+  // viewer_deg: forzar planta a Degollado siempre
+  if(viewerDeg) UI.plant='degollado';
+  // Pestañas visibles por rol
   const editTabs=['ingresos','granel','salidas','traslados'];
+  const degOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad'];
   document.querySelectorAll('.mnb').forEach(b=>{
     const t=b.getAttribute('data-tab');
-    if(!admin && editTabs.includes(t)) b.style.display='none';
+    if(viewerDeg && degOnlyTabs.includes(t)) b.style.display='none';
+    else if(!admin && !viewerDeg && editTabs.includes(t)) b.style.display='none';
     else b.style.display='';
   });
-  // Si un viewer está en una pestaña restringida, lo mandamos a dashboard
-  if(!admin && editTabs.includes(UI.tab)) UI.tab='dashboard';
+  // Si está en pestaña restringida, redirigir
+  if(viewerDeg && degOnlyTabs.includes(UI.tab)) UI.tab='dashboard';
+  if(!admin && !viewerDeg && editTabs.includes(UI.tab)) UI.tab='dashboard';
   const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados'];
   document.querySelectorAll('.mnb').forEach((b,i)=>b.classList.toggle('act',tabs[i]===UI.tab));
   const ptEl=document.getElementById('ptabs');
   const showPt=['inventario','ingresos'].includes(UI.tab);
-  if(showPt){ptEl.style.display='flex';ptEl.innerHTML=PLANTAS.map(p=>`<button class="ptab ${UI.plant===p.id?'act':''}" style="${UI.plant===p.id?`border-bottom-color:${p.color};color:#1A1A18`:''}" onclick="UI.plant='${p.id}';render()"><span class="dot" style="background:${p.color}"></span>${p.nom}</button>`).join('');}
+  if(showPt){
+    const plantasVisibles=viewerDeg?PLANTAS.filter(p=>p.id==='degollado'):PLANTAS;
+    ptEl.style.display='flex';
+    ptEl.innerHTML=plantasVisibles.map(p=>`<button class="ptab ${UI.plant===p.id?'act':''}" style="${UI.plant===p.id?`border-bottom-color:${p.color};color:#1A1A18`:''}" onclick="UI.plant='${p.id}';render()"><span class="dot" style="background:${p.color}"></span>${p.nom}</button>`).join('');
+  }
   else ptEl.style.display='none';
   // Indicador de rol
   const roleEl=document.getElementById('role-badge');
-  if(roleEl){const u=sessionStorage.getItem('rdv_user')||'';roleEl.innerHTML=admin?`${u} · <span style="color:#7FCF9F">Administrador</span>`:`${u} · <span style="color:#E0B968">Solo lectura</span>`;}
+  if(roleEl){const u=sessionStorage.getItem('rdv_user')||'';roleEl.innerHTML=admin?`${u} · <span style="color:#7FCF9F">Administrador</span>`:viewerDeg?`${u} · <span style="color:#639922">Degollado</span>`:`${u} · <span style="color:#E0B968">Solo lectura</span>`;}
   const app=document.getElementById('app');
   if(UI.tab==='dashboard')       app.innerHTML=rDash();
   else if(UI.tab==='inventario') app.innerHTML=rInv();
@@ -402,15 +413,16 @@ function render(){
 
 // ── DASHBOARD ──────────────────────────────────────────
 function rDash(){
+  const plantasVis=isViewerDeg()?PLANTAS.filter(p=>p.id==='degollado'):PLANTAS;
   let tE=0,tU=0,tD=0;
-  PLANTAS.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
+  plantasVis.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
   const metrics=tE>0?`<div class="metric-grid">
     <div class="metric-card"><div class="metric-label">Granel ingresado total</div><div class="metric-val" style="color:#0F6E56">${fmt(tE)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">todas las plantas</div></div>
     <div class="metric-card"><div class="metric-label">Granel consumido</div><div class="metric-val" style="color:#BA7517">${fmt(tU)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en salidas de camión</div></div>
     <div class="metric-card"><div class="metric-label">Granel disponible</div><div class="metric-val" style="color:${tD<=0?'#B02E1E':'#1A1A18'}">${fmt(tD)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en bodega</div></div>
   </div>`:'';
 
-  const pCards=PLANTAS.map(p=>{
+  const pCards=plantasVis.map(p=>{
     const gs=granelStats(p.id);
     const secRows=(cat,color)=>MATS.filter(m=>m.cat===cat).map(m=>{const s=stockMat(p.id,m.id);const hasRec=DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);const trans=transitoMat(p.id,m.id);if(!hasRec&&trans<=0)return '';const valColor=s<=0?'#B02E1E':color;return `<div class="dash-row"><span class="dash-lbl"><span style="font-family:'SF Mono',monospace;font-size:9px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 4px;margin-right:4px">${m.rdv}</span>${m.nom}</span><span class="dash-val" style="color:${valColor}">${fmt(s)}${trans>0?`<span style="color:#0F6E56;font-size:10px;font-weight:400"> · →${fmt(trans)}</span>`:''}</span></div>`;}).join('');
     const bots=secRows('Botellas','#27783A');
