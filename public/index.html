@@ -175,6 +175,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#BA7517;box-sh
     <button class="mnb" data-tab="granel" onclick="goTab('granel')">Tequila Granel</button>
     <button class="mnb" data-tab="salidas" onclick="goTab('salidas')">Salidas</button>
     <button class="mnb" data-tab="trazabilidad" onclick="goTab('trazabilidad')">Trazabilidad</button>
+    <button class="mnb" data-tab="traslados" onclick="goTab('traslados')">Traslados</button>
   </nav>
 </header>
 <div id="ptabs" class="ptabs" style="display:none"></div>
@@ -258,7 +259,7 @@ const rdvCode=(id)=>MAT_IDX[id]?.rdv||'';
 // ═══════════════════════════════════════
 //  ESTADO
 // ═══════════════════════════════════════
-let DB={facturas:[],granel:[],salidas:[],transito:[]};
+let DB={facturas:[],granel:[],salidas:[],transito:[],traslados:[]};
 let UI={
   tab:'dashboard',plant:'degollado',invView:'material',
   wiz:{step:1,camion:'',plant:'cuermaro',fecha:hoy(),prods:[]},
@@ -266,7 +267,8 @@ let UI={
   ing:{num:'',prov:'',plant:'cuermaro',mat:'bot_1l',qty:'',fecha:hoy(),nom:'PB'},
   gra:{pasaporte:'',analisis:'',lote:'',planta:'cuermaro',tipo:'Blanco',litros:'',fecha:hoy(),notas:''},
   traz:{modo:'camion',q:''},
-  sim:{prods:[]}
+  sim:{prods:[]},
+  tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''}
 };
 
 function hoy(){return new Date().toISOString().split('T')[0];}
@@ -321,6 +323,7 @@ async function loadDB(){
     DB.granel=d.granel||[];
     DB.salidas=d.salidas||[];
     DB.transito=d.transito||[];
+    DB.traslados=d.traslados||[];
   }catch(e){ console.error(e); }
 }
 // ═══════════════════════════════════════
@@ -369,7 +372,7 @@ function render(){
   document.getElementById('hdr-date').innerHTML=new Date().toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
   const admin=isAdmin();
   // Para viewer: solo Dashboard, Inventario, Trazabilidad
-  const editTabs=['ingresos','granel','salidas'];
+  const editTabs=['ingresos','granel','salidas','traslados'];
   document.querySelectorAll('.mnb').forEach(b=>{
     const t=b.getAttribute('data-tab');
     if(!admin && editTabs.includes(t)) b.style.display='none';
@@ -377,7 +380,7 @@ function render(){
   });
   // Si un viewer está en una pestaña restringida, lo mandamos a dashboard
   if(!admin && editTabs.includes(UI.tab)) UI.tab='dashboard';
-  const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad'];
+  const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados'];
   document.querySelectorAll('.mnb').forEach((b,i)=>b.classList.toggle('act',tabs[i]===UI.tab));
   const ptEl=document.getElementById('ptabs');
   const showPt=['inventario','ingresos'].includes(UI.tab);
@@ -392,6 +395,7 @@ function render(){
   else if(UI.tab==='ingresos')   app.innerHTML=rIng();
   else if(UI.tab==='granel')     app.innerHTML=rGranel();
   else if(UI.tab==='salidas')    app.innerHTML=rSal();
+  else if(UI.tab==='traslados')  app.innerHTML=rTraslados();
   else                           app.innerHTML=rTraz();
 }
 
@@ -789,6 +793,98 @@ function rSalStep2(){
       <button class="btn btn-gh" onclick="UI.wiz.step=1;render()">← Volver</button>
       <button class="btn btn-ok" onclick="confirmar()">✓ Confirmar salida del camión</button>
     </div>`;
+}
+
+// ── TRASLADOS ──────────────────────────────────────────
+function rTraslados(){
+  const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.tsl.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
+  const plantOpts=(excl)=>PLANTAS.filter(p=>p.id!==excl).map(p=>`<option value="${p.id}">${p.nom}</option>`).join('');
+  const origenOpts=PLANTAS.map(p=>`<option value="${p.id}"${UI.tsl.origen===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const destinoOpts=PLANTAS.filter(p=>p.id!==UI.tsl.origen).map(p=>`<option value="${p.id}"${UI.tsl.destino===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const stockOrigen=stockMat(UI.tsl.origen,UI.tsl.mat);
+  const pOr=PLANT_IDX[UI.tsl.origen],pDst=PLANT_IDX[UI.tsl.destino];
+
+  const hist=DB.traslados.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const hRows=hist.length===0
+    ?'<tr><td colspan="6" class="empty">Sin traslados registrados</td></tr>'
+    :hist.map(t=>{
+      const m=MAT_IDX[t.mat];
+      const pO=PLANT_IDX[t.origen],pD=PLANT_IDX[t.destino];
+      return `<tr>
+        <td style="color:#888">${t.fecha}</td>
+        <td><span style="font-size:10px;font-weight:600;color:${pO?.color}">${pO?.nom}</span>
+            <span style="color:#bbb;margin:0 4px">→</span>
+            <span style="font-size:10px;font-weight:600;color:${pD?.color}">${pD?.nom}</span></td>
+        <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||t.mat}</div></td>
+        <td class="mono" style="color:#0F6E56">${fmt(t.cant)}</td>
+        <td style="font-size:11px;color:#aaa">${t.nota||'—'}</td>
+        <td style="font-size:10px;color:#bbb">${t.usuario||'admin'}</td>
+      </tr>`;
+    }).join('');
+
+  return `<div class="card">
+    <div class="card-h"><span class="card-title">Nuevo traslado</span></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:#888;margin-bottom:12px">Mueve material de una bodega a otra. Se descuenta del origen y se suma al destino.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
+        <div class="fg"><label>Bodega origen</label>
+          <select onchange="UI.tsl.origen=this.value;if(UI.tsl.destino===this.value)UI.tsl.destino=UI.tsl.origen==='degollado'?'cuermaro':'degollado';render()">${origenOpts}</select></div>
+        <div class="fg"><label>Bodega destino</label>
+          <select onchange="UI.tsl.destino=this.value;render()">${destinoOpts}</select></div>
+        <div class="fg"><label>Material</label>
+          <select onchange="UI.tsl.mat=this.value;render()">${matOpts}</select></div>
+        <div class="fg"><label>Cantidad <span style="color:#888;font-size:10px">(disponible: ${fmt(stockOrigen)})</span></label>
+          <input type="number" min="1" max="${stockOrigen}" value="${UI.tsl.qty}" placeholder="0" oninput="UI.tsl.qty=this.value"></div>
+        <div class="fg"><label>Fecha</label>
+          <input type="date" value="${UI.tsl.fecha}" onchange="UI.tsl.fecha=this.value"></div>
+        <div class="fg"><label>Nota <span style="color:#bbb;font-size:10px">(opcional)</span></label>
+          <input type="text" value="${UI.tsl.nota}" placeholder="motivo del traslado..." oninput="UI.tsl.nota=this.value"></div>
+        <div class="fg"><label>&nbsp;</label>
+          <button class="btn btn-pr" onclick="regTraslado()">Registrar traslado</button></div>
+      </div>
+      ${stockOrigen<=0?`<div style="margin-top:8px;font-size:11px;color:#B02E1E">⚠ Sin stock disponible de este material en ${pOr?.nom}</div>`:''}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="card-title">Historial de traslados</span>
+      <span style="font-size:11px;color:#bbb">${hist.length} registros</span></div>
+    <div class="ox"><table><thead><tr>
+      <th class="tl">Fecha</th><th class="tl">Ruta</th><th class="tl">Material</th>
+      <th>Cantidad</th><th class="tl">Nota</th><th class="tl">Usuario</th>
+    </tr></thead><tbody>${hRows}</tbody></table></div>
+  </div>`;
+}
+
+async function regTraslado(){
+  const qty=parseInt(UI.tsl.qty);
+  if(!qty||qty<=0){toast('Ingresa una cantidad válida',true);return;}
+  if(UI.tsl.origen===UI.tsl.destino){toast('Origen y destino no pueden ser iguales',true);return;}
+  const stock=stockMat(UI.tsl.origen,UI.tsl.mat);
+  if(qty>stock){toast(`Solo hay ${fmt(stock)} disponibles en ${PLANT_IDX[UI.tsl.origen]?.nom}`,true);return;}
+  const traslado={
+    id:Date.now(),origen:UI.tsl.origen,destino:UI.tsl.destino,
+    mat:UI.tsl.mat,cant:qty,fecha:UI.tsl.fecha,
+    nota:UI.tsl.nota.trim(),
+    usuario:sessionStorage.getItem('rdv_user')||'admin'
+  };
+  try{
+    const res=await api('/api/traslado',{method:'POST',body:JSON.stringify(traslado)});
+    if(!res.ok)throw new Error();
+    // Actualizar localmente: descontar del origen
+    let restante=qty;
+    DB.facturas.filter(f=>f.plant===UI.tsl.origen&&f.mat===UI.tsl.mat&&f.cantRest>0)
+      .sort((a,b)=>a.cantRest-b.cantRest)
+      .forEach(f=>{if(restante<=0)return;const usar=Math.min(f.cantRest,restante);f.cantRest-=usar;restante-=usar;});
+    // Sumar al destino
+    const mnom=MAT_IDX[UI.tsl.mat]?.nom||UI.tsl.mat;
+    DB.facturas.push({id:traslado.id,num:`TRASLADO-${UI.tsl.origen.toUpperCase().slice(0,3)}`,
+      prov:`Traslado desde ${PLANT_IDX[UI.tsl.origen]?.nom}`,
+      plant:UI.tsl.destino,mat:UI.tsl.mat,cantIni:qty,cantRest:qty,fecha:UI.tsl.fecha});
+    DB.traslados.unshift(traslado);
+    const pO=PLANT_IDX[UI.tsl.origen]?.nom,pD=PLANT_IDX[UI.tsl.destino]?.nom;
+    toast(`✓ ${fmt(qty)} ${mnom} · ${pO} → ${pD}`);
+    UI.tsl.qty='';UI.tsl.nota='';render();
+  }catch(e){toast('Error al registrar traslado',true);}
 }
 
 // ── TRAZABILIDAD ───────────────────────────────────────
