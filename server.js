@@ -64,11 +64,12 @@ app.post('/api/login', async (req, res) => {
 // ── OBTENER TODA LA DATA ───────────────────────────────
 app.get('/api/data', auth, async (req, res) => {
   try {
-    const [f, g, s, t] = await Promise.all([
+    const [f, g, s, t, tr] = await Promise.all([
       db.execute('SELECT * FROM facturas'),
       db.execute('SELECT * FROM granel'),
       db.execute('SELECT * FROM salidas ORDER BY id DESC'),
       db.execute('SELECT * FROM transito'),
+      db.execute('SELECT * FROM traslados ORDER BY id DESC'),
     ]);
     const facturas = f.rows.map(r => ({
       id: r.id, num: r.num, prov: r.prov, plant: r.plant, mat: r.mat,
@@ -91,7 +92,11 @@ app.get('/api/data', auth, async (req, res) => {
       id: r.id, plant: r.plant, mat: r.mat, cant: r.cant,
       ...(r.nom ? { nom: r.nom } : {}),
     }));
-    res.json({ facturas, granel, salidas, transito });
+    const traslados = tr.rows.map(r => ({
+      id: r.id, origen: r.origen, destino: r.destino, mat: r.mat,
+      cant: r.cant, fecha: r.fecha, nota: r.nota, usuario: r.usuario,
+    }));
+    res.json({ facturas, granel, salidas, transito, traslados });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error leyendo datos' });
@@ -142,6 +147,50 @@ app.post('/api/llegada', auth, adminOnly, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error registrando llegada' });
+  }
+});
+
+// ── REGISTRAR TRASLADO ─────────────────────────────────
+app.post('/api/traslado', auth, adminOnly, async (req, res) => {
+  try {
+    const { id, origen, destino, mat, cant, fecha, nota, usuario } = req.body;
+    if (!origen || !destino || !mat || !cant) return res.status(400).json({ error: 'Faltan datos' });
+    if (origen === destino) return res.status(400).json({ error: 'Origen y destino iguales' });
+
+    // Obtener facturas disponibles en origen ordenadas por menor stock primero (FIFO)
+    const fOrigen = await db.execute({
+      sql: `SELECT id, cant_rest FROM facturas WHERE plant=? AND mat=? AND cant_rest>0 ORDER BY cant_rest ASC`,
+      args: [origen, mat],
+    });
+    const totalDisp = fOrigen.rows.reduce((s, r) => s + r.cant_rest, 0);
+    if (totalDisp < cant) return res.status(400).json({ error: `Stock insuficiente (disponible: ${totalDisp})` });
+
+    const stmts = [];
+    // Descontar del origen (FIFO)
+    let restante = cant;
+    for (const row of fOrigen.rows) {
+      if (restante <= 0) break;
+      const usar = Math.min(row.cant_rest, restante);
+      stmts.push({ sql: 'UPDATE facturas SET cant_rest=cant_rest-? WHERE id=?', args: [usar, row.id] });
+      restante -= usar;
+    }
+    // Crear factura en destino
+    const newId = String(id || Date.now());
+    const numOrigen = origen.toUpperCase().slice(0, 3);
+    stmts.push({
+      sql: `INSERT INTO facturas (id,num,prov,plant,mat,cant_ini,cant_rest,fecha) VALUES (?,?,?,?,?,?,?,?)`,
+      args: [newId, `TRASLADO-${numOrigen}`, `Traslado desde ${origen}`, destino, mat, cant, cant, fecha],
+    });
+    // Guardar registro en tabla traslados
+    stmts.push({
+      sql: `INSERT INTO traslados (id,origen,destino,mat,cant,fecha,nota,usuario) VALUES (?,?,?,?,?,?,?,?)`,
+      args: [newId, origen, destino, mat, cant, fecha, nota || null, usuario || 'admin'],
+    });
+    await db.batch(stmts, 'write');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error registrando traslado' });
   }
 });
 
