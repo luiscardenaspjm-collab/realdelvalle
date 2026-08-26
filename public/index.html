@@ -268,7 +268,8 @@ let UI={
   gra:{pasaporte:'',analisis:'',lote:'',planta:'cuermaro',tipo:'Blanco',litros:'',fecha:hoy(),notas:''},
   traz:{modo:'camion',q:''},
   sim:{prods:[]},
-  tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''}
+  tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''},
+  editFact:null
 };
 
 function hoy(){return new Date().toISOString().split('T')[0];}
@@ -661,16 +662,46 @@ function rIng(){
   const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.ing.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
   const showNom=isEtiq(UI.ing.mat);
   const facts=DB.facturas.filter(f=>f.plant===UI.plant&&!f.baseline).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  const fRows=facts.length===0?`<tr><td colspan="7" class="empty">Aún no hay ingresos registrados en ${p?.nom} · empiezan a contar desde hoy</td></tr>`
-    :facts.map(f=>{const m=MAT_IDX[f.mat];const pct=f.cantIni>0?Math.round((1-f.cantRest/f.cantIni)*100):0;return `<tr>
-      <td style="font-weight:500">${f.num}${nomBadgeInline(f.nom)}</td><td>${f.fecha}</td>
-      <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||f.mat}</div></td>
-      <td class="mono">${fmt(f.cantIni)}</td>
-      <td class="mono ${f.cantRest<=0?'neg':'pos'}">${fmt(f.cantRest)}</td>
-      <td><div class="pb"><div class="pb-fill" style="width:${pct}%;background:${pct>=90?'#B02E1E':'#BA7517'}"></div></div>
-        <span style="font-size:10px;color:#bbb;margin-left:5px">${pct}%</span></td>
-      <td style="color:#aaa;font-size:11px">${f.prov||'—'}</td>
-    </tr>`;}).join('');
+  const admin=isAdmin();
+  const fRows=facts.length===0?`<tr><td colspan="${admin?8:7}" class="empty">Aún no hay ingresos registrados en ${p?.nom} · empiezan a contar desde hoy</td></tr>`
+    :facts.map(f=>{
+      const m=MAT_IDX[f.mat];const pct=f.cantIni>0?Math.round((1-f.cantRest/f.cantIni)*100):0;
+      const isEditing=UI.editFact===String(f.id);
+      if(isEditing){
+        const nomOpts=isEtiq(f.mat)?`<div style="display:flex;gap:5px;margin-top:4px">
+          <button class="nom-btn ${f.nom==='DEG'?'sel-deg':''}" onclick="UI._ef.nom='DEG';render()">DEG</button>
+          <button class="nom-btn ${f.nom==='EMB'?'sel-emb':''}" onclick="UI._ef.nom='EMB';render()">EMB</button>
+          <button class="nom-btn ${f.nom==='PB'?'sel-pb':''}" onclick="UI._ef.nom='PB';render()">PB</button>
+        </div>`:'';
+        return `<tr style="background:#FFFBF0">
+          <td><input type="text" value="${UI._ef.num||f.num}" oninput="UI._ef.num=this.value" style="width:120px"></td>
+          <td><input type="date" value="${UI._ef.fecha||f.fecha}" onchange="UI._ef.fecha=this.value" style="width:130px"></td>
+          <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||f.mat}</div></td>
+          <td><input type="number" min="1" value="${UI._ef.cantIni??f.cantIni}" oninput="UI._ef.cantIni=parseInt(this.value)" style="width:90px"></td>
+          <td class="mono ${f.cantRest<=0?'neg':'pos'}">${fmt(f.cantRest)}</td>
+          <td><input type="text" value="${UI._ef.prov??f.prov??''}" oninput="UI._ef.prov=this.value" placeholder="Proveedor" style="width:140px"></td>
+          ${nomOpts?`<td>${nomOpts}</td>`:'<td></td>'}
+          <td style="white-space:nowrap">
+            <button class="btn btn-pr btn-sm" onclick="guardarFact('${f.id}')">Guardar</button>
+            <button class="btn btn-gh btn-sm" onclick="UI.editFact=null;UI._ef={};render()" style="margin-left:4px">Cancelar</button>
+          </td>
+        </tr>`;
+      }
+      return `<tr>
+        <td style="font-weight:500">${f.num}${nomBadgeInline(f.nom)}</td>
+        <td>${f.fecha}</td>
+        <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||f.mat}</div></td>
+        <td class="mono">${fmt(f.cantIni)}</td>
+        <td class="mono ${f.cantRest<=0?'neg':'pos'}">${fmt(f.cantRest)}</td>
+        <td><div class="pb"><div class="pb-fill" style="width:${pct}%;background:${pct>=90?'#B02E1E':'#BA7517'}"></div></div>
+          <span style="font-size:10px;color:#bbb;margin-left:5px">${pct}%</span></td>
+        <td style="color:#aaa;font-size:11px">${f.prov||'—'}</td>
+        ${admin?`<td style="white-space:nowrap">
+          <button class="btn btn-gh btn-sm" onclick="editarFact('${f.id}')">✏️</button>
+          <button class="btn btn-sm" style="background:#FFF0F0;color:#B02E1E;border:0.5px solid #F0C0C0;margin-left:3px" onclick="eliminarFact('${f.id}')">🗑</button>
+        </td>`:''}
+      </tr>`;
+    }).join('');
   return `
     <div class="card"><div class="card-h"><span class="card-title">Registrar ingreso de material</span></div><div class="card-body">
       <div class="row4" style="margin-bottom:10px">
@@ -691,7 +722,7 @@ function rIng(){
       </div>
     </div></div>
     <div class="card"><div class="card-h"><span class="card-title">Facturas · ${p?.nom}</span><span style="font-size:11px;color:#bbb">${facts.length} registros</span></div>
-    <div class="ox"><table><thead><tr><th class="tl">N° Factura</th><th class="tl">Fecha</th><th class="tl">Material</th><th>Inicial</th><th class="hl">Disponible</th><th class="tl">Uso</th><th class="tl">Proveedor</th></tr></thead><tbody>${fRows}</tbody></table></div></div>`;
+    <div class="ox"><table><thead><tr><th class="tl">N° Factura</th><th class="tl">Fecha</th><th class="tl">Material</th><th>Inicial</th><th class="hl">Disponible</th><th class="tl">Uso</th><th class="tl">Proveedor</th>${admin?'<th></th>':''}</tr></thead><tbody>${fRows}</tbody></table></div></div>`;
 }
 
 // ── TEQUILA A GRANEL ───────────────────────────────────
@@ -853,6 +884,45 @@ function rTraslados(){
       <th>Cantidad</th><th class="tl">Nota</th><th class="tl">Usuario</th>
     </tr></thead><tbody>${hRows}</tbody></table></div>
   </div>`;
+}
+
+function editarFact(id){UI.editFact=String(id);UI._ef={};render();}
+
+async function guardarFact(id){
+  const f=DB.facturas.find(x=>String(x.id)===String(id));
+  if(!f)return;
+  const updates={
+    num:UI._ef.num??f.num,
+    fecha:UI._ef.fecha??f.fecha,
+    prov:UI._ef.prov??f.prov??'',
+    cantIni:UI._ef.cantIni??f.cantIni,
+    nom:UI._ef.nom??f.nom??null,
+  };
+  // Si cambió el inicial, ajustamos el disponible proporcionalmente
+  if(updates.cantIni!==f.cantIni){
+    const consumido=f.cantIni-f.cantRest;
+    updates.cantRest=Math.max(0,updates.cantIni-consumido);
+  } else { updates.cantRest=f.cantRest; }
+  try{
+    const res=await api('/api/factura/'+id,{method:'PUT',body:JSON.stringify(updates)});
+    if(!res.ok)throw new Error();
+    Object.assign(f,updates);
+    UI.editFact=null;UI._ef={};
+    toast('✓ Factura actualizada');render();
+  }catch(e){toast('Error al guardar',true);}
+}
+
+async function eliminarFact(id){
+  const f=DB.facturas.find(x=>String(x.id)===String(id));
+  if(!f)return;
+  const m=MAT_IDX[f.mat];
+  if(!confirm(`¿Eliminar la factura ${f.num}?\n${m?.nom} · ${fmt(f.cantIni)} uds\n\nEsta acción no se puede deshacer.`))return;
+  try{
+    const res=await api('/api/factura/'+id,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    DB.facturas=DB.facturas.filter(x=>String(x.id)!==String(id));
+    toast(`✓ Factura ${f.num} eliminada`);render();
+  }catch(e){toast('Error al eliminar',true);}
 }
 
 async function regTraslado(){
