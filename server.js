@@ -96,6 +96,17 @@ app.get('/api/data', auth, async (req, res) => {
       id: r.id, origen: r.origen, destino: r.destino, mat: r.mat,
       cant: r.cant, fecha: r.fecha, nota: r.nota, usuario: r.usuario,
     }));
+    // viewer_deg solo ve datos de Degollado
+    const rol = req.user.rol;
+    if (rol === 'viewer_deg') {
+      return res.json({
+        facturas: facturas.filter(f => f.plant === 'degollado'),
+        granel: granel.filter(g => g.planta === 'degollado'),
+        salidas: salidas.filter(s => s.plant === 'degollado'),
+        transito: transito.filter(t => t.plant === 'degollado'),
+        traslados: traslados.filter(t => t.origen === 'degollado' || t.destino === 'degollado'),
+      });
+    }
     res.json({ facturas, granel, salidas, transito, traslados });
   } catch (e) {
     console.error(e);
