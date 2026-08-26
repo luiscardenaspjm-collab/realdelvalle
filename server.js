@@ -119,6 +119,34 @@ app.post('/api/factura', auth, adminOnly, async (req, res) => {
   }
 });
 
+// ── EDITAR FACTURA ─────────────────────────────────────
+app.put('/api/factura/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { num, prov, fecha, cantIni, cantRest, nom } = req.body;
+    await db.execute({
+      sql: `UPDATE facturas SET num=?,prov=?,fecha=?,cant_ini=?,cant_rest=?,nom=? WHERE id=?`,
+      args: [num, prov||'', fecha, cantIni, cantRest, nom||null, id],
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error actualizando factura' });
+  }
+});
+
+// ── ELIMINAR FACTURA ───────────────────────────────────
+app.delete('/api/factura/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute({ sql: 'DELETE FROM facturas WHERE id=?', args: [id] });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error eliminando factura' });
+  }
+});
+
 // ── MARCAR LLEGADA DE TRÁNSITO ─────────────────────────
 app.post('/api/llegada', auth, adminOnly, async (req, res) => {
   try {

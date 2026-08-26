@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Real del Valle · Inventario</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2EEE6;color:#1A1A18;font-size:13px;min-height:100vh}
+.hdr{background:#1A1A18}
+.hdr-top{display:flex;align-items:center;gap:12px;padding:13px 22px 9px}
+.logo{width:36px;height:36px;border-radius:50%;background:#BA7517;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0}
+.brand{font-size:14px;font-weight:500;color:#fff}
+.brand-sub{font-size:11px;color:#555;margin-top:2px}
+.main-nav{display:flex;border-top:1px solid #2A2A24;overflow-x:auto}
+.mnb{padding:10px 15px;background:none;border:none;border-bottom:2px solid transparent;color:#666;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.mnb.act{color:#EF9F27;border-bottom-color:#EF9F27;font-weight:500}
+.mnb:hover:not(.act){color:#bbb}
+.ptabs{display:flex;background:#fff;border-bottom:1px solid #E5DFD3;padding:0 22px;overflow-x:auto}
+.ptab{padding:9px 15px;background:none;border:none;border-bottom:2px solid transparent;font-size:12px;cursor:pointer;color:#999;display:flex;align-items:center;gap:7px;font-family:inherit;white-space:nowrap}
+.ptab.act{color:#1A1A18;font-weight:500}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.page{padding:16px 22px;max-width:1100px}
+.card{background:#fff;border-radius:10px;border:0.5px solid #DDD7CC;overflow:hidden;margin-bottom:14px}
+.card-h{padding:11px 16px;border-bottom:0.5px solid #EEE8DF;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#999}
+.card-body{padding:14px 16px}
+.ox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:480px}
+th{padding:8px 12px;font-size:11px;font-weight:400;color:#aaa;text-align:right;background:#F6F2EA;border-bottom:0.5px solid #EEE8DF;white-space:nowrap}
+th.tl,th:first-child{text-align:left}
+th.hl{color:#BA7517;font-weight:500}
+th.hteal{color:#0F6E56;font-weight:500}
+td{padding:6px 12px;border-bottom:0.5px solid #F0EAE0;text-align:right;font-size:12px;vertical-align:middle}
+td:first-child{text-align:left;color:#444}
+tr.cat-row td{background:#F6F2EA;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;padding:5px 12px;pointer-events:none}
+tr:last-child td{border-bottom:none}
+tr:not(.cat-row):hover td{background:#FDFCF8}
+.mono{font-family:'SF Mono',Consolas,monospace;font-size:12px}
+.rdv-code{font-family:'SF Mono',Consolas,monospace;font-size:10px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:4px;padding:1px 5px;margin-right:6px;flex-shrink:0}
+.mat-name{display:flex;align-items:center}
+.pos{color:#27783A}.neg{color:#B02E1E}.zer{color:#ccc}
+input,select,textarea{padding:8px 10px;border:0.5px solid #C8C0B0;border-radius:6px;font-size:12px;color:#1A1A18;background:#fff;width:100%;font-family:inherit}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#BA7517;box-shadow:0 0 0 3px rgba(186,117,23,.1)}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;color:#888}
+.btn{padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;border:none;font-weight:500;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn-pr{background:#BA7517;color:#fff}.btn-pr:hover{background:#9E6413}
+.btn-ok{background:#27783A;color:#fff}.btn-ok:hover{background:#1D5E2C}
+.btn-gh{background:#fff;border:0.5px solid #C8C0B0;color:#555}.btn-gh:hover{background:#F2EEE6}
+.btn-dn{background:#fff;border:0.5px solid #F09595;color:#A32D2D}.btn-dn:hover{background:#FAECE7}
+.btn-teal{background:#0F6E56;color:#fff}.btn-teal:hover{background:#085041}
+.btn-sm{padding:5px 10px;font-size:11px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;white-space:nowrap}
+.b-out{background:#FAECE7;color:#993C1D}
+.b-warn{background:#FAEEDA;color:#633806}
+.b-teal{background:#E1F5EE;color:#0F6E56}
+.b-blue{background:#E6F1FB;color:#185FA5}
+.wiz-bar{display:flex;margin-bottom:16px;border-radius:8px;overflow:hidden;border:0.5px solid #DDD7CC}
+.wiz-s{flex:1;padding:10px 12px;font-size:11px;background:#F6F2EA;color:#bbb;border-right:0.5px solid #DDD7CC;text-align:center}
+.wiz-s:last-child{border-right:none}
+.wiz-s.act{background:#fff;color:#BA7517;font-weight:500}
+.wiz-s.done{background:#EAF3DE;color:#27783A}
+.alloc-block{border:0.5px solid #DDD7CC;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.alloc-hdr{padding:9px 14px;border-bottom:0.5px solid #DDD7CC;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.alloc-hdr.mat{background:#F6F2EA}
+.alloc-hdr.gra{background:#E1F5EE}
+.alloc-name{font-size:12px;font-weight:500;display:flex;align-items:center}
+.alloc-need{font-size:11px;font-family:'SF Mono',Consolas,monospace}
+.alloc-row{display:grid;grid-template-columns:1.8fr 1fr;gap:10px;padding:9px 14px;border-bottom:0.5px solid #F0EAE0;align-items:center}
+.alloc-row:last-child{border-bottom:none}
+.alloc-fnum{font-size:11px;font-weight:500}
+.alloc-fdisp{font-size:10px;color:#bbb;margin-top:1px}
+.alloc-st{font-size:11px;font-weight:500}
+.st-ok{color:#27783A}.st-err{color:#B02E1E}.st-warn{color:#BA7517}
+.insight{background:#FAEEDA;border-left:3px solid #EF9F27;border-radius:0 8px 8px 0;padding:10px 14px;font-size:11px;color:#412402;margin-bottom:14px;line-height:1.7}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.chip{background:#F2EEE6;border:0.5px solid #DDD7CC;border-radius:6px;padding:4px 10px;font-size:11px;color:#555}
+.chip strong{color:#1A1A18}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.dash-card{background:#fff;border-radius:10px;border:0.5px solid #DDD7CC;padding:14px 16px}
+.dash-plant-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid #EEE8DF}
+.dash-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:0.5px solid #F5F1EA}
+.dash-row:last-child{border-bottom:none}
+.dash-lbl{font-size:11px;color:#777;display:flex;align-items:center;gap:4px}
+.dash-val{font-size:12px;font-family:'SF Mono',Consolas,monospace;font-weight:500}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.metric-card{background:#fff;border-radius:10px;border:0.5px solid #DDD7CC;padding:14px 16px;text-align:center}
+.metric-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin-bottom:6px}
+.metric-val{font-size:22px;font-weight:600;font-family:'SF Mono',Consolas,monospace}
+.metric-sub{font-size:10px;color:#bbb;margin-top:3px}
+.prod-add-row{display:grid;grid-template-columns:1fr 90px auto;gap:8px;align-items:end;margin-bottom:12px}
+.prod-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:0.5px solid #E5DFD3;border-radius:7px;margin-bottom:6px;background:#FDFCF8}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+@media(max-width:700px){.dash-grid,.metric-grid,.row3,.row4{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.dash-grid,.metric-grid,.row2,.row3,.row4{grid-template-columns:1fr}}
+.pb{width:72px;height:5px;background:#EEE;border-radius:3px;display:inline-block;vertical-align:middle;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px}
+.sep{border:none;border-top:0.5px solid #EEE8DF;margin:14px 0}
+.srch-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.srch-bar input,.srch-bar select{flex:1;min-width:160px}
+.traz-card{background:#fff;border:0.5px solid #DDD7CC;border-radius:10px;overflow:hidden;margin-bottom:10px}
+.traz-h{padding:11px 16px;border-bottom:0.5px solid #EEE8DF;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.traz-body{padding:12px 16px}
+.info-pill{display:inline-flex;align-items:center;gap:6px;background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:6px;padding:4px 10px;font-size:11px;color:#0F6E56;margin-bottom:12px}
+#toast{position:fixed;bottom:22px;right:22px;background:#1A1A18;color:#fff;border-radius:8px;padding:11px 20px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999}
+.empty{text-align:center;padding:2.5rem;color:#ccc;font-size:12px}
+.sec-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#aaa;margin-bottom:10px}
+.cat-sub{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:4px;margin-top:8px}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:#1A1A18;display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px}
+.login-box{background:#fff;border-radius:14px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{width:48px;height:48px;border-radius:50%;background:#BA7517;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#fff;margin:0 auto 14px}
+.login-title{text-align:center;font-size:18px;font-weight:600;margin-bottom:2px}
+.login-sub{text-align:center;font-size:12px;color:#999;margin-bottom:24px}
+.login-box .fg{margin-bottom:12px}
+.login-err{background:#FAECE7;color:#A32D2D;border:0.5px solid #F09595;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:12px;display:none}
+.logout-btn{background:none;border:0.5px solid #444;color:#999;border-radius:5px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit}
+.logout-btn:hover{border-color:#777;color:#ccc}
+.nom-deg{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;font-family:'SF Mono',Consolas,monospace;background:#E8F0FF;color:#1A3F8A;border:0.5px solid #9BB5F0;white-space:nowrap}
+.nom-pb{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;font-family:'SF Mono',Consolas,monospace;background:#FEF3E2;color:#7A3D00;border:0.5px solid #F0C070;white-space:nowrap}
+.nom-emb{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;font-family:'SF Mono',Consolas,monospace;background:#EDE7FB;color:#5B3B9E;border:0.5px solid #C3ADEE;white-space:nowrap}
+.transito-badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500;font-family:'SF Mono',Consolas,monospace;background:#E1F5EE;color:#0F6E56;border:0.5px solid #9FE1CB;white-space:nowrap}
+.sim-chip{background:#FFF8F0;border:0.5px solid #F0D090;border-radius:6px;padding:4px 10px;font-size:11px;color:#555;display:inline-flex;align-items:center}
+.sim-chip strong{color:#1A1A18}
+.nom-btn{padding:6px 14px;border-radius:5px;font-size:11px;cursor:pointer;border:0.5px solid #C8C0B0;background:none;color:#888;font-family:inherit}
+.nom-btn.sel-deg{background:#1A3F8A;color:#fff;border-color:#1A3F8A}
+.nom-btn.sel-pb{background:#7A3D00;color:#fff;border-color:#7A3D00}
+.nom-btn.sel-emb{background:#5B3B9E;color:#fff;border-color:#5B3B9E}
+.view-toggle{display:flex;gap:0;border:0.5px solid #C8C0B0;border-radius:6px;overflow:hidden}
+.view-btn{padding:5px 12px;font-size:11px;background:#fff;border:none;cursor:pointer;color:#888;font-family:inherit;white-space:nowrap}
+.view-btn.act{background:#BA7517;color:#fff;font-weight:500}
+.prod-group{border:0.5px solid #DDD7CC;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.prod-group-h{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:0.5px solid #EEE8DF}
+.prod-group-name{font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
+.tarimas-badge{font-size:11px;font-family:'SF Mono',Consolas,monospace;font-weight:500}
+.limitante{background:#FAECE7;color:#993C1D;border:0.5px solid #F09595;border-radius:4px;padding:2px 8px;font-size:10px}
+.prod-mat-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px 12px;padding:7px 14px;border-bottom:0.5px solid #F5F1EA;align-items:center;font-size:12px}
+.prod-mat-row:last-child{border-bottom:none}
+.prod-mat-row.is-limit{background:#FFF8F5}
+.tar-cell{font-family:'SF Mono',Consolas,monospace;font-size:11px;text-align:right;min-width:70px}
+.otros-group{border:0.5px solid #EEE8DF;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.otros-h{padding:9px 14px;background:#F8F6F1;border-bottom:0.5px solid #EEE8DF;font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">R</div>
+    <div class="login-title">Real del Valle</div>
+    <div class="login-sub">Sistema de Inventario</div>
+    <div class="login-err" id="login-err"></div>
+    <div class="fg"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" placeholder="usuario"></div>
+    <div class="fg"><label>Contraseña</label><input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn btn-pr" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+<header class="hdr">
+  <div class="hdr-top">
+    <div class="logo">R</div>
+    <div><div class="brand">Real del Valle</div><div class="brand-sub">Sistema de Inventario · 3 Plantas</div></div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <span style="font-size:11px;color:#888" id="role-badge"></span>
+      <span style="font-size:11px;color:#444" id="hdr-date"></span>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <nav class="main-nav">
+    <button class="mnb" data-tab="dashboard" onclick="goTab('dashboard')">Dashboard</button>
+    <button class="mnb" data-tab="inventario" onclick="goTab('inventario')">Inventario</button>
+    <button class="mnb" data-tab="ingresos" onclick="goTab('ingresos')">Ingresos</button>
+    <button class="mnb" data-tab="granel" onclick="goTab('granel')">Tequila Granel</button>
+    <button class="mnb" data-tab="salidas" onclick="goTab('salidas')">Salidas</button>
+    <button class="mnb" data-tab="trazabilidad" onclick="goTab('trazabilidad')">Trazabilidad</button>
+    <button class="mnb" data-tab="traslados" onclick="goTab('traslados')">Traslados</button>
+  </nav>
+</header>
+<div id="ptabs" class="ptabs" style="display:none"></div>
+<div id="app" class="page"></div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+const PLANTAS=[
+  {id:'degollado',nom:'Degollado',   color:'#639922'},
+  {id:'cuermaro', nom:'Cuermaro',    color:'#BA7517'},
+  {id:'embajador',nom:'Embajador',   color:'#5B3B9E'},
+  {id:'arandas',  nom:'Peña Blanca', color:'#D85A30'}
+];
+
+const LITROS_TARIMA={
+  blanco_750:396, blanco_1000:529, blanco_1750:546,
+  blanco_fuerte_1000:529,
+  repo_750:396,   repo_1000:529,   repo_1750:546
+};
+
+// Cajas actualizadas: caja_b=Litro(B+R 1L), caja_750b=750 Blanco, caja_750r=750 Reposado
+const PRODUCTOS=[
+  {id:'blanco_750',  nom:'Tequila Blanco 750 ml',    tipo:'Blanco',  mats:{bot_750:528, etiq_34b:528, tapa_n:528, caja_750b:44, separador:44}},
+  {id:'blanco_1000', nom:'Tequila Blanco 1,000 ml',  tipo:'Blanco',  mats:{bot_1l:528,  etiq_1b:528,  tapa_n:528, caja_b:44,    separador:44}},
+  {id:'blanco_fuerte_1000', nom:'Tequila Blanco Fuerte 1,000 ml', tipo:'Blanco', mats:{bot_1l:528, etiq_bf1:528, tapa_n:528, caja_b:44, separador:44}},
+  {id:'blanco_1750', nom:'Tequila Blanco 1,750 ml',  tipo:'Blanco',  mats:{bot_1750:312,etiq_1750b:312,corcho_1750:312,caja_1750:52,separador:52}},
+  {id:'repo_750',    nom:'Tequila Reposado 750 ml',  tipo:'Reposado',mats:{bot_750:528, etiq_34r:528, tapa_n:528, caja_750r:44, separador:44}},
+  {id:'repo_1000',   nom:'Tequila Reposado 1,000 ml',tipo:'Reposado',mats:{bot_1l:528,  etiq_1r:528,  tapa_n:528, caja_b:44,    separador:44}},
+  {id:'repo_1750',   nom:'Tequila Reposado 1,750 ml',tipo:'Reposado',mats:{bot_1750:312,etiq_1750r:312,corcho_1750:312,caja_1750:52,separador:52}}
+];
+
+// Catálogo numerado RDV01-RDV26 · Orden: Botellas → Etiquetas → Insumos
+const MATS=[
+  // ── BOTELLAS
+  {id:'bot_1l',     rdv:'RDV01', nom:'Botella 1 Litro',         cat:'Botellas'},
+  {id:'bot_750',    rdv:'RDV02', nom:'Botella 3/4 Litro',       cat:'Botellas'},
+  {id:'bot_700',    rdv:'RDV03', nom:'Botella 700 ml',          cat:'Botellas'},
+  {id:'bot_375',    rdv:'RDV04', nom:'Botella 375 ml',          cat:'Botellas'},
+  {id:'bot_1750',   rdv:'RDV05', nom:'Botella 1,750 ml',        cat:'Botellas'},
+  // ── ETIQUETAS
+  {id:'etiq_1b',    rdv:'RDV06', nom:'Etiqueta 1L Blanco',      cat:'Etiquetas', hasNom:true},
+  {id:'etiq_34b',   rdv:'RDV07', nom:'Etiqueta 3/4 Blanco',     cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1r',    rdv:'RDV08', nom:'Etiqueta 1L Reposado',    cat:'Etiquetas', hasNom:true},
+  {id:'etiq_34r',   rdv:'RDV09', nom:'Etiqueta 3/4 Reposado',   cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1750b', rdv:'RDV10', nom:'Etiqueta 1750 Blanco',    cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1750r', rdv:'RDV11', nom:'Etiqueta 1750 Reposado',  cat:'Etiquetas', hasNom:true},
+  {id:'etiq_375b',  rdv:'RDV12', nom:'Etiqueta 375 Blanco',     cat:'Etiquetas', hasNom:true},
+  {id:'etiq_bf1',   rdv:'RDV27', nom:'Etiqueta Blanco Fuerte 1L',cat:'Etiquetas', hasNom:true},
+  // ── INSUMOS
+  {id:'tapa_n',     rdv:'RDV13', nom:'Tapa Negra',              cat:'Insumos'},
+  {id:'corcho_750', rdv:'RDV14', nom:'Corcho Madera 750',       cat:'Insumos'},
+  {id:'corcho_700', rdv:'RDV15', nom:'Corcho Madera 700 ml',    cat:'Insumos'},
+  {id:'corcho_1750',rdv:'RDV16', nom:'Corcho Madera 1750',      cat:'Insumos'},
+  {id:'caja_b',     rdv:'RDV17', nom:'Caja Litro',              cat:'Insumos'},
+  {id:'caja_750b',  rdv:'RDV18', nom:'Caja 750 Blanco',         cat:'Insumos'},
+  {id:'caja_750r',  rdv:'RDV19', nom:'Caja 750 Reposado',       cat:'Insumos'},
+  {id:'caja_1750',  rdv:'RDV31', nom:'Caja 1,750 ml',           cat:'Insumos'},
+  {id:'separador',  rdv:'RDV20', nom:'Separador',               cat:'Insumos'},
+  {id:'cb_1lb',     rdv:'RDV21', nom:'Cód. Barras 1L Blanco',   cat:'Insumos'},
+  {id:'cb_34b',     rdv:'RDV22', nom:'Cód. Barras 3/4 Blanco',  cat:'Insumos'},
+  {id:'cb_1lr',     rdv:'RDV23', nom:'Cód. Barras 1L Reposado', cat:'Insumos'},
+  {id:'cb_34r',     rdv:'RDV24', nom:'Cód. Barras 3/4 Reposado',cat:'Insumos'},
+  {id:'cb_1750b',   rdv:'RDV25', nom:'Cód. Barras 1750 Blanco', cat:'Insumos'},
+  {id:'cb_gen',     rdv:'RDV26', nom:'Cód. Barras Genérico',    cat:'Insumos'},
+  {id:'cinta_b',    rdv:'RDV28', nom:'Cinta Real del Valle Blanca',       cat:'Insumos'},
+  {id:'cinta_bf',   rdv:'RDV29', nom:'Cinta Real del Valle Blanco Fuerte',cat:'Insumos'},
+  {id:'cinta_transp',rdv:'RDV30',nom:'Cinta Transparente',               cat:'Insumos'}
+];
+
+const PROD_IDX={},MAT_IDX={},PLANT_IDX={};
+PRODUCTOS.forEach(p=>PROD_IDX[p.id]=p);
+MATS.forEach(m=>MAT_IDX[m.id]=m);
+PLANTAS.forEach(p=>PLANT_IDX[p.id]=p);
+
+const rdvLabel=(m)=>`<span class="rdv-code">${m.rdv}</span>${m.nom}`;
+const rdvCode=(id)=>MAT_IDX[id]?.rdv||'';
+
+// ═══════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════
+let DB={facturas:[],granel:[],salidas:[],transito:[],traslados:[]};
+let UI={
+  tab:'dashboard',plant:'degollado',invView:'material',
+  wiz:{step:1,camion:'',plant:'cuermaro',fecha:hoy(),prods:[]},
+  wizAlloc:{},wizGranel:{},
+  ing:{num:'',prov:'',plant:'cuermaro',mat:'bot_1l',qty:'',fecha:hoy(),nom:'PB'},
+  gra:{pasaporte:'',analisis:'',lote:'',planta:'cuermaro',tipo:'Blanco',litros:'',fecha:hoy(),notas:''},
+  traz:{modo:'camion',q:''},
+  sim:{prods:[]},
+  tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''},
+  editFact:null
+};
+
+function hoy(){return new Date().toISOString().split('T')[0];}
+const fmt=n=>Math.round(n||0).toLocaleString('es-MX');
+
+// ═══════════════════════════════════════
+//  AUTENTICACIÓN + API
+// ═══════════════════════════════════════
+// AUTENTICACIÓN + API (versión nube)
+function getToken(){ return sessionStorage.getItem('rdv_token'); }
+function setToken(t){ sessionStorage.setItem('rdv_token', t); }
+function clearToken(){ sessionStorage.removeItem('rdv_token'); sessionStorage.removeItem('rdv_rol'); sessionStorage.removeItem('rdv_user'); }
+function getRol(){ return sessionStorage.getItem('rdv_rol')||'viewer'; }
+function isAdmin(){ return getRol()==='admin'; }
+
+async function api(path, opts={}){
+  const headers = { 'Content-Type':'application/json', ...(opts.headers||{}) };
+  const token = getToken();
+  if(token) headers['Authorization'] = 'Bearer '+token;
+  const res = await fetch(path, { ...opts, headers });
+  if(res.status===401){ clearToken(); showLogin(); throw new Error('Sesión expirada'); }
+  return res;
+}
+
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-err');
+  errEl.style.display='none';
+  if(!u||!p){ errEl.textContent='Ingresa usuario y contraseña'; errEl.style.display='block'; return; }
+  try{
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const data=await res.json();
+    if(!res.ok){ errEl.textContent=data.error||'Error al entrar'; errEl.style.display='block'; return; }
+    setToken(data.token);
+    sessionStorage.setItem('rdv_rol', data.rol||'viewer');
+    sessionStorage.setItem('rdv_user', data.username||'');
+    document.getElementById('login-screen').style.display='none';
+    await loadDB();
+    render();
+  }catch(e){ errEl.textContent='Error de conexión'; errEl.style.display='block'; }
+}
+
+function doLogout(){ clearToken(); location.reload(); }
+function showLogin(){ document.getElementById('login-screen').style.display='flex'; }
+
+async function loadDB(){
+  try{
+    const res=await api('/api/data');
+    const d=await res.json();
+    DB.facturas=d.facturas||[];
+    DB.granel=d.granel||[];
+    DB.salidas=d.salidas||[];
+    DB.transito=d.transito||[];
+    DB.traslados=d.traslados||[];
+  }catch(e){ console.error(e); }
+}
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function stockMat(plant,mat){return DB.facturas.filter(f=>f.plant===plant&&f.mat===mat&&f.cantRest>0).reduce((s,f)=>s+f.cantRest,0);}
+function stockMatNom(plant,mat,nom){return DB.facturas.filter(f=>f.plant===plant&&f.mat===mat&&f.nom===nom&&f.cantRest>0).reduce((s,f)=>s+f.cantRest,0);}
+function factsAvail(plant,mat){return DB.facturas.filter(f=>f.plant===plant&&f.mat===mat&&f.cantRest>0);}
+function transitoMat(plant,mat){return (DB.transito||[]).filter(t=>t.plant===plant&&t.mat===mat).reduce((s,t)=>s+t.cant,0);}
+async function marcarLlegada(plant,mat){
+  if(!isAdmin()){toast('Solo lectura: no puedes marcar llegadas',true);render();return;}
+  const ents=(DB.transito||[]).filter(t=>t.plant===plant&&t.mat===mat);
+  if(!ents.length)return;
+  const total=ents.reduce((s,t)=>s+t.cant,0);
+  const m=MAT_IDX[mat];
+  if(!confirm(`¿Marcar llegada de ${fmt(total)} ${m?.nom}?\nSe sumará a Disponible y saldrá de En tránsito.`)){render();return;}
+  try{
+    const res=await api('/api/llegada',{method:'POST',body:JSON.stringify({plant,mat})});
+    if(!res.ok)throw new Error();
+    const b=Date.now();
+    ents.forEach((t,i)=>{
+      const entry={id:b+i,num:'LLEGADA-TRANSITO',prov:'Entrega recibida',plant,mat,cantIni:t.cant,cantRest:t.cant,fecha:hoy()};
+      if(t.nom)entry.nom=t.nom;
+      DB.facturas.push(entry);
+    });
+    DB.transito=DB.transito.filter(t=>!(t.plant===plant&&t.mat===mat));
+    toast(`✓ Llegada registrada: ${fmt(total)} ${m?.nom}`);
+    render();
+  }catch(e){toast('Error al registrar llegada',true);render();}
+}
+const isEtiq=id=>id.startsWith('etiq_');
+const nomClass=nom=>nom==='DEG'?'nom-deg':nom==='EMB'?'nom-emb':'nom-pb';
+const nomBadge=nom=>nom?`<span class="${nomClass(nom)}">NOM ${nom}</span>`:'';
+const nomBadgeInline=nom=>nom?` <span class="${nomClass(nom)}" style="margin-left:4px">NOM ${nom}</span>`:'';
+function litrosNecesarios(prods){const n={Blanco:0,Reposado:0};prods.forEach(p=>{const pr=PROD_IDX[p.prodId];if(!pr)return;n[pr.tipo]=(n[pr.tipo]||0)+(LITROS_TARIMA[p.prodId]||0)*p.tarimas;});return n;}
+function granelAvail(planta,tipo){return DB.granel.filter(g=>g.planta===planta&&g.tipo===tipo&&g.litrosRest>0);}
+function granelStats(planta){const l=DB.granel.filter(g=>g.planta===planta);return{entro:l.reduce((s,g)=>s+g.litros,0),usado:l.reduce((s,g)=>s+(g.litros-g.litrosRest),0),disp:l.reduce((s,g)=>s+g.litrosRest,0)};}
+function calcNeeded(prods){const n={};prods.forEach(p=>{const pr=PROD_IDX[p.prodId];if(!pr)return;Object.entries(pr.mats).forEach(([mid,u])=>{n[mid]=(n[mid]||0)+u*p.tarimas;});});return n;}
+let _tt;
+function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#A32D2D':'#1A1A18';t.style.opacity=1;clearTimeout(_tt);_tt=setTimeout(()=>t.style.opacity=0,2700);}
+
+// ═══════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════
+function render(){
+  document.getElementById('hdr-date').innerHTML=new Date().toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+  const admin=isAdmin();
+  // Para viewer: solo Dashboard, Inventario, Trazabilidad
+  const editTabs=['ingresos','granel','salidas','traslados'];
+  document.querySelectorAll('.mnb').forEach(b=>{
+    const t=b.getAttribute('data-tab');
+    if(!admin && editTabs.includes(t)) b.style.display='none';
+    else b.style.display='';
+  });
+  // Si un viewer está en una pestaña restringida, lo mandamos a dashboard
+  if(!admin && editTabs.includes(UI.tab)) UI.tab='dashboard';
+  const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados'];
+  document.querySelectorAll('.mnb').forEach((b,i)=>b.classList.toggle('act',tabs[i]===UI.tab));
+  const ptEl=document.getElementById('ptabs');
+  const showPt=['inventario','ingresos'].includes(UI.tab);
+  if(showPt){ptEl.style.display='flex';ptEl.innerHTML=PLANTAS.map(p=>`<button class="ptab ${UI.plant===p.id?'act':''}" style="${UI.plant===p.id?`border-bottom-color:${p.color};color:#1A1A18`:''}" onclick="UI.plant='${p.id}';render()"><span class="dot" style="background:${p.color}"></span>${p.nom}</button>`).join('');}
+  else ptEl.style.display='none';
+  // Indicador de rol
+  const roleEl=document.getElementById('role-badge');
+  if(roleEl){const u=sessionStorage.getItem('rdv_user')||'';roleEl.innerHTML=admin?`${u} · <span style="color:#7FCF9F">Administrador</span>`:`${u} · <span style="color:#E0B968">Solo lectura</span>`;}
+  const app=document.getElementById('app');
+  if(UI.tab==='dashboard')       app.innerHTML=rDash();
+  else if(UI.tab==='inventario') app.innerHTML=rInv();
+  else if(UI.tab==='ingresos')   app.innerHTML=rIng();
+  else if(UI.tab==='granel')     app.innerHTML=rGranel();
+  else if(UI.tab==='salidas')    app.innerHTML=rSal();
+  else if(UI.tab==='traslados')  app.innerHTML=rTraslados();
+  else                           app.innerHTML=rTraz();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function rDash(){
+  let tE=0,tU=0,tD=0;
+  PLANTAS.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
+  const metrics=tE>0?`<div class="metric-grid">
+    <div class="metric-card"><div class="metric-label">Granel ingresado total</div><div class="metric-val" style="color:#0F6E56">${fmt(tE)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">todas las plantas</div></div>
+    <div class="metric-card"><div class="metric-label">Granel consumido</div><div class="metric-val" style="color:#BA7517">${fmt(tU)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en salidas de camión</div></div>
+    <div class="metric-card"><div class="metric-label">Granel disponible</div><div class="metric-val" style="color:${tD<=0?'#B02E1E':'#1A1A18'}">${fmt(tD)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en bodega</div></div>
+  </div>`:'';
+
+  const pCards=PLANTAS.map(p=>{
+    const gs=granelStats(p.id);
+    const secRows=(cat,color)=>MATS.filter(m=>m.cat===cat).map(m=>{const s=stockMat(p.id,m.id);const hasRec=DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);const trans=transitoMat(p.id,m.id);if(!hasRec&&trans<=0)return '';const valColor=s<=0?'#B02E1E':color;return `<div class="dash-row"><span class="dash-lbl"><span style="font-family:'SF Mono',monospace;font-size:9px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 4px;margin-right:4px">${m.rdv}</span>${m.nom}</span><span class="dash-val" style="color:${valColor}">${fmt(s)}${trans>0?`<span style="color:#0F6E56;font-size:10px;font-weight:400"> · →${fmt(trans)}</span>`:''}</span></div>`;}).join('');
+    const bots=secRows('Botellas','#27783A');
+    const etiqs=secRows('Etiquetas','#BA7517');
+    const ins=secRows('Insumos','#555');
+    return `<div class="dash-card">
+      <div class="dash-plant-h"><span class="dot" style="background:${p.color}"></span><span style="font-size:12px;font-weight:500">${p.nom}</span></div>
+      ${bots?`<div class="cat-sub">Botellas</div>${bots}`:''}
+      ${etiqs?`<div class="cat-sub">Etiquetas</div>${etiqs}`:''}
+      ${ins?`<div class="cat-sub">Insumos</div>${ins}`:''}
+      ${!bots&&!etiqs&&!ins?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
+      ${gs.entro>0?`<div style="margin-top:10px;padding-top:8px;border-top:0.5px solid #EEE8DF">
+        <div class="dash-row"><span class="dash-lbl" style="color:#0F6E56">Granel ingresado</span><span class="dash-val" style="color:#0F6E56">${fmt(gs.entro)} L</span></div>
+        <div class="dash-row"><span class="dash-lbl">Consumido</span><span class="dash-val" style="color:#BA7517">−${fmt(gs.usado)} L</span></div>
+        <div class="dash-row"><span class="dash-lbl">Disponible</span><span class="dash-val ${gs.disp<=0?'neg':'pos'}">${fmt(gs.disp)} L</span></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  const recSal=DB.salidas.slice(0,6);
+  const sRows=recSal.length===0?'<tr><td colspan="6" class="empty">Sin salidas registradas</td></tr>'
+    :recSal.map(s=>{const pl=PLANT_IDX[s.plant];const pts=s.productos.map(p=>`${PROD_IDX[p.prodId]?.nom} ×${p.tarimas}`).join(' / ');const fns=[...new Set(s.consumos.map(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return f?.num||'?'}))];const lns=s.consumosGranel?[...new Set(s.consumosGranel.map(c=>c.lote))]:[];return `<tr><td>${s.fecha}</td><td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:4px"></span>${pl?.nom}</td><td style="font-weight:500">${s.camion}</td><td style="font-size:11px">${pts}</td><td style="font-size:10px;color:#aaa">${fns.join(', ')}</td><td style="font-size:10px;color:#0F6E56">${lns.join(', ')||'—'}</td></tr>`;}).join('');
+
+  return `${metrics}<div class="dash-grid">${pCards}</div>
+    <div class="card"><div class="card-h"><span class="card-title">Últimas salidas de camión</span></div>
+    <div class="ox"><table><thead><tr><th class="tl">Fecha</th><th class="tl">Planta</th><th class="tl">Camión</th><th class="tl">Productos</th><th class="tl">Facturas</th><th class="tl" style="color:#0F6E56">Lotes granel</th></tr></thead><tbody>${sRows}</tbody></table></div></div>`;
+}
+
+// ── INVENTARIO ─────────────────────────────────────────
+function rInv(){
+  return UI.invView==='producto' ? rInvProducto() : rInvMaterial();
+}
+
+function invToggle(){
+  return `<div class="view-toggle">
+    <button class="view-btn ${UI.invView==='material'?'act':''}" onclick="UI.invView='material';render()">Por material</button>
+    <button class="view-btn ${UI.invView==='producto'?'act':''}" onclick="UI.invView='producto';render()">Por producto</button>
+  </div>`;
+}
+
+function rInvMaterial(){
+  const p=PLANT_IDX[UI.plant];
+  const simOn=UI.sim.prods.length>0;
+  const simNeed=simOn?calcNeeded(UI.sim.prods):{};
+  const simLit=simOn?litrosNecesarios(UI.sim.prods):{Blanco:0,Reposado:0};
+  let rows='',anyMat=false;
+  ['Botellas','Etiquetas','Insumos'].forEach(cat=>{
+    let cr='',catHas=false;
+    MATS.filter(m=>m.cat===cat).forEach(m=>{
+      const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);
+      const trans=transitoMat(UI.plant,m.id);
+      if(!facts.length&&trans<=0)return;
+      catHas=anyMat=true;
+      const ini=facts.reduce((s,f)=>s+f.cantIni,0),rest=facts.reduce((s,f)=>s+f.cantRest,0),used=ini-rest;
+      const pct=ini>0?Math.round(used/ini*100):0;
+      const nomLine=m.hasNom?()=>{
+        const deg=stockMatNom(UI.plant,m.id,'DEG'),emb=stockMatNom(UI.plant,m.id,'EMB'),pb=stockMatNom(UI.plant,m.id,'PB');
+        const parts=[];
+        if(deg>0) parts.push(`<span class="nom-deg">NOM DEG</span> ${fmt(deg)}`);
+        if(emb>0) parts.push(`<span class="nom-emb">NOM EMB</span> ${fmt(emb)}`);
+        if(pb>0)  parts.push(`<span class="nom-pb">NOM PB</span> ${fmt(pb)}`);
+        return parts.length?`<div style="font-size:10px;color:#aaa;margin-top:2px">${parts.join(' · ')}</div>`:'';
+      }:()=>'';
+      // Celdas de simulación
+      let simCells='';
+      if(simOn){
+        const uso=simNeed[m.id]||0;
+        const queda=rest-uso;
+        simCells=`<td class="mono" style="background:#FFF8F0">${uso>0?`<span style="color:#BA7517;font-weight:500">−${fmt(uso)}</span>`:'<span style="color:#ddd">—</span>'}</td>
+        <td class="mono" style="background:#FFF8F0;font-weight:600;color:${queda<0?'#B02E1E':queda===rest?'#bbb':'#27783A'}">${uso>0?fmt(queda):'<span style="color:#ddd">—</span>'}${queda<0?' ⚠':''}</td>`;
+      }
+      cr+=`<tr>
+        <td><div class="mat-name"><span class="rdv-code">${m.rdv}</span>${m.nom}</div>${nomLine()}</td>
+        <td class="mono">${fmt(ini)}</td>
+        <td class="mono">${trans>0?`<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+          <span class="transito-badge">→ ${fmt(trans)}</span>
+          <label style="font-size:10px;color:#0F6E56;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap"><input type="checkbox" onchange="marcarLlegada('${UI.plant}','${m.id}')" style="width:auto;margin:0;cursor:pointer"> ya llegó</label>
+        </div>`:'<span style="color:#ddd">—</span>'}</td>
+        <td class="mono hl ${rest<=0?'neg':rest<ini*.15?'neg':rest<ini*.3?'st-warn':'pos'}">${fmt(rest)}</td>
+        ${simCells}
+        <td class="mono neg">−${fmt(used)}</td>
+        <td><div class="pb"><div class="pb-fill" style="width:${pct}%;background:${pct>=80?'#B02E1E':'#27783A'}"></div></div>
+          <span style="font-size:10px;color:#bbb;margin-left:5px">${pct}%</span></td>
+        <td><button class="btn btn-gh btn-sm" onclick="detalleFact('${m.id}')">Facturas</button></td></tr>`;
+    });
+    const nCols=simOn?9:7;
+    if(catHas)rows+=`<tr class="cat-row"><td colspan="${nCols}">${cat}</td></tr>${cr}`;
+  });
+  const nCols=simOn?9:7;
+  if(!anyMat)rows=`<tr><td colspan="${nCols}" class="empty">Sin ingresos en ${p?.nom}</td></tr>`;
+
+  const gs=granelStats(UI.plant);
+  const lotes=DB.granel.filter(g=>g.planta===UI.plant);
+  const gRows=lotes.length===0?'<tr><td colspan="7" class="empty">Sin granel en esta planta</td></tr>'
+    :lotes.map(g=>{const pct=g.litros>0?Math.round((g.litros-g.litrosRest)/g.litros*100):0;return `<tr>
+      <td style="font-weight:500;color:#0F6E56;font-family:'SF Mono',monospace">${g.lote}</td>
+      <td>${g.fecha}</td><td><span class="badge ${g.tipo==='Blanco'?'b-blue':'b-warn'}">${g.tipo}</span></td>
+      <td class="mono">${fmt(g.litros)} L</td><td class="mono neg">−${fmt(g.litros-g.litrosRest)} L</td>
+      <td class="mono hteal">${fmt(g.litrosRest)} L</td>
+      <td><div class="pb"><div class="pb-fill" style="width:${pct}%;background:${pct>=90?'#B02E1E':'#0F6E56'}"></div></div>
+        <span style="font-size:10px;color:#bbb;margin-left:5px">${pct}%</span></td>
+    </tr>`;}).join('');
+
+  // Simulador de movimientos
+  const prOpts=PRODUCTOS.map(pr=>`<option value="${pr.id}">${pr.nom}</option>`).join('');
+  const simItems=UI.sim.prods.map((sp,i)=>{const pr=PROD_IDX[sp.prodId];const lit=(LITROS_TARIMA[sp.prodId]||0)*sp.tarimas;return `<span class="sim-chip"><strong>${pr?.nom}</strong> · ${sp.tarimas} tar. · <span style="color:#0F6E56">${fmt(lit)} L</span> <span onclick="quitarSimProd(${i})" style="cursor:pointer;color:#B02E1E;margin-left:4px;font-weight:700">✕</span></span>`;}).join('');
+  const simGranel=simOn?`<div style="font-size:11px;color:#0F6E56;margin-top:8px">Granel simulado: Blanco ${fmt(simLit.Blanco||0)} L · Reposado ${fmt(simLit.Reposado||0)} L</div>`:'';
+  const simPanel=`<div class="card" style="border-color:#F0D090">
+    <div class="card-h" style="background:#FFF8F0"><span class="card-title" style="color:#BA7517">🧮 Simulador de movimientos · ${p?.nom}</span>
+      ${simOn?`<button class="btn btn-gh btn-sm" onclick="limpiarSim()">Limpiar simulación</button>`:''}
+    </div>
+    <div class="card-body">
+      <div style="font-size:11px;color:#888;margin-bottom:10px">Agrega tarimas de un producto para ver cuánto material se usaría y con cuánto quedarías — sin afectar el inventario real.</div>
+      <div class="prod-add-row">
+        <div class="fg"><label>Producto</label><select id="simProd">${prOpts}</select></div>
+        <div class="fg"><label>Tarimas</label><input type="number" id="simTar" min="1" value="1" style="width:90px"></div>
+        <div class="fg"><label>&nbsp;</label><button class="btn btn-pr" onclick="addSimProd()">+ Simular</button></div>
+      </div>
+      ${simOn?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${simItems}</div>${simGranel}`:''}
+    </div>
+  </div>`;
+
+  const simHead=simOn?`<th class="tl" style="color:#BA7517;background:#FFF8F0">Simula uso</th><th class="tl" style="color:#BA7517;background:#FFF8F0">Quedaría</th>`:'';
+
+  return `
+    ${simPanel}
+    <div class="card"><div class="card-h">
+      <span class="card-title">Material envasado · ${p?.nom}</span>
+      <div style="display:flex;align-items:center;gap:10px">${invToggle()}<button class="btn btn-gh btn-sm" onclick="expInv()">CSV</button></div>
+    </div>
+    <div class="ox"><table><thead><tr><th class="tl">Material</th><th>Inicial</th><th class="hteal">En tránsito</th><th class="hl">Disponible</th>${simHead}<th>Consumido</th><th class="tl">Uso</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
+    <div class="card"><div class="card-h">
+      <span class="card-title" style="color:#0F6E56">Tequila a granel · ${p?.nom}</span>
+      <div style="display:flex;gap:16px;font-size:11px">
+        <span><span style="color:#0F6E56;font-weight:500">${fmt(gs.entro)} L</span> ingresados</span>
+        <span><span style="color:#BA7517;font-weight:500">${fmt(gs.usado)} L</span> consumidos</span>
+        <span><span style="color:${gs.disp<=0?'#B02E1E':'#27783A'};font-weight:500">${fmt(gs.disp)} L</span> disponibles</span>
+      </div>
+    </div>
+    <div class="ox"><table><thead><tr><th class="tl">Lote</th><th class="tl">Fecha</th><th class="tl">Tipo</th><th>Ingresado</th><th>Consumido</th><th class="hteal">Disponible</th><th class="tl">Uso</th></tr></thead><tbody>${gRows}</tbody></table></div></div>`;
+}
+
+function rInvProducto(){
+  const p=PLANT_IDX[UI.plant];
+  // Collect all mat IDs used by products
+  const matsEnProducto=new Set(PRODUCTOS.flatMap(pr=>Object.keys(pr.mats)));
+
+  const prodGroups=PRODUCTOS.map(prod=>{
+    // For each material of this product, calculate tarimas possible
+    const matRows=Object.entries(prod.mats).map(([mid,uPorTar])=>{
+      const m=MAT_IDX[mid]; if(!m) return null;
+      const stock=stockMat(UI.plant,mid);
+      const tarPosibles=uPorTar>0?Math.floor(stock/uPorTar):0;
+      // NOM info for etiquetas
+      const nomInfo=m.hasNom?()=>{
+        const deg=stockMatNom(UI.plant,mid,'DEG'),emb=stockMatNom(UI.plant,mid,'EMB'),pb=stockMatNom(UI.plant,mid,'PB');
+        const parts=[];
+        if(deg>0) parts.push(`<span class="nom-deg">NOM DEG</span> ${fmt(deg)}`);
+        if(emb>0) parts.push(`<span class="nom-emb">NOM EMB</span> ${fmt(emb)}`);
+        if(pb>0)  parts.push(`<span class="nom-pb">NOM PB</span> ${fmt(pb)}`);
+        return parts.length?` <span style="font-size:10px;color:#aaa">${parts.join(' · ')}</span>`:'';
+      }:()=>'';
+      return {mid,m,stock,uPorTar,tarPosibles,nomInfo};
+    }).filter(Boolean);
+
+    // Max tarimas = min of all materials
+    const maxTar=matRows.length?Math.min(...matRows.map(r=>r.tarPosibles)):0;
+    const limitante=matRows.reduce((a,b)=>a.tarPosibles<=b.tarPosibles?a:b,matRows[0]||{});
+
+    // Only show if plant has any of this product's materials OR any stock
+    const hasAnyStock=matRows.some(r=>r.stock>0);
+
+    const rows=matRows.map(r=>{
+      const isLim=r.mid===limitante?.mid&&matRows.length>1;
+      const tarColor=r.tarPosibles===0?'#B02E1E':r.tarPosibles===maxTar&&maxTar>0?'#27783A':'#BA7517';
+      return `<div class="prod-mat-row ${isLim?'is-limit':''}">
+        <div class="mat-name"><span class="rdv-code">${r.m.rdv}</span></div>
+        <div>${r.m.nom}${r.nomInfo()}</div>
+        <div style="text-align:right;font-family:'SF Mono',Consolas,monospace;font-size:12px;color:${r.stock===0?'#ccc':'#1A1A18'}">${fmt(r.stock)}</div>
+        <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+          <span class="tar-cell" style="color:${tarColor}">${r.tarPosibles} tar.</span>
+          ${isLim?'<span class="limitante">limitante</span>':''}
+        </div>
+      </div>`;
+    }).join('');
+
+    const tarColor=maxTar===0?'#B02E1E':maxTar<10?'#BA7517':'#27783A';
+    return {prod,maxTar,limitante,rows,hasAnyStock};
+  });
+
+  // Materials not in any product
+  const otrosMats=MATS.filter(m=>{
+    if(matsEnProducto.has(m.id)) return false;
+    return stockMat(UI.plant,m.id)>0;
+  });
+
+  const groups=prodGroups.map(({prod,maxTar,limitante,rows})=>`
+    <div class="prod-group">
+      <div class="prod-group-h">
+        <span class="prod-group-name">
+          <span class="dot" style="background:${prod.tipo==='Blanco'?'#1A3F8A':'#7A3D00'}"></span>
+          ${prod.nom}
+        </span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="tarimas-badge" style="color:${maxTar===0?'#B02E1E':maxTar<10?'#BA7517':'#27783A'}">
+            ${maxTar===0?'Sin stock':'Máx. '+fmt(maxTar)+' tarimas'}
+          </span>
+          ${maxTar>0&&limitante?`<span style="font-size:10px;color:#888">· limitado por <strong>${limitante.m?.nom||''}</strong></span>`:''}
+        </div>
+      </div>
+      <div style="background:#fff">${rows}</div>
+    </div>`).join('');
+
+  const otrosRows=otrosMats.map(m=>{
+    const stock=stockMat(UI.plant,m.id);
+    const nomInfo=m.hasNom?()=>{const deg=stockMatNom(UI.plant,m.id,'DEG'),emb=stockMatNom(UI.plant,m.id,'EMB'),pb=stockMatNom(UI.plant,m.id,'PB');const parts=[];if(deg>0)parts.push(`<span class="nom-deg">NOM DEG</span> ${fmt(deg)}`);if(emb>0)parts.push(`<span class="nom-emb">NOM EMB</span> ${fmt(emb)}`);if(pb>0)parts.push(`<span class="nom-pb">NOM PB</span> ${fmt(pb)}`);return parts.length?` <span style="font-size:10px;color:#aaa">${parts.join(' · ')}</span>`:''}:()=>'';
+    return `<div class="prod-mat-row">
+      <div class="mat-name"><span class="rdv-code">${m.rdv}</span></div>
+      <div>${m.nom}${nomInfo()}</div>
+      <div style="text-align:right;font-family:'SF Mono',Consolas,monospace;font-size:12px">${fmt(stock)}</div>
+      <div></div>
+    </div>`;
+  }).join('');
+
+  const gs=granelStats(UI.plant);
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#999">Inventario por Producto · ${p?.nom}</span>
+      ${invToggle()}
+    </div>
+    ${groups}
+    ${otrosRows?`<div class="otros-group"><div class="otros-h">Otros materiales (sin clasificar en producto)</div>${otrosRows}</div>`:''}
+    ${gs.entro>0?`<div class="card"><div class="card-h">
+      <span class="card-title" style="color:#0F6E56">Tequila a granel · ${p?.nom}</span>
+      <div style="display:flex;gap:16px;font-size:11px">
+        <span><span style="color:#0F6E56;font-weight:500">${fmt(gs.entro)} L</span> ingresados</span>
+        <span><span style="color:#BA7517;font-weight:500">${fmt(gs.usado)} L</span> consumidos</span>
+        <span><span style="color:${gs.disp<=0?'#B02E1E':'#27783A'};font-weight:500">${fmt(gs.disp)} L</span> disponibles</span>
+      </div>
+    </div><div style="padding:10px 14px;font-size:12px;color:#555">${DB.granel.filter(g=>g.planta===UI.plant).map(g=>`<span style="margin-right:14px">Lote <strong style="color:#0F6E56">${g.lote}</strong> · ${g.tipo} · Disp: <strong>${fmt(g.litrosRest)} L</strong></span>`).join('')}</div></div>`:''}
+  `;
+}
+
+// ── INGRESOS ───────────────────────────────────────────
+function rIng(){
+  const p=PLANT_IDX[UI.plant];
+  const plOpts=PLANTAS.map(pl=>`<option value="${pl.id}"${UI.ing.plant===pl.id?' selected':''}>${pl.nom}</option>`).join('');
+  const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.ing.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
+  const showNom=isEtiq(UI.ing.mat);
+  const facts=DB.facturas.filter(f=>f.plant===UI.plant&&!f.baseline).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const admin=isAdmin();
+  const fRows=facts.length===0?`<tr><td colspan="${admin?8:7}" class="empty">Aún no hay ingresos registrados en ${p?.nom} · empiezan a contar desde hoy</td></tr>`
+    :facts.map(f=>{
+      const m=MAT_IDX[f.mat];const pct=f.cantIni>0?Math.round((1-f.cantRest/f.cantIni)*100):0;
+      const isEditing=UI.editFact===String(f.id);
+      if(isEditing){
+        const nomOpts=isEtiq(f.mat)?`<div style="display:flex;gap:5px;margin-top:4px">
+          <button class="nom-btn ${f.nom==='DEG'?'sel-deg':''}" onclick="UI._ef.nom='DEG';render()">DEG</button>
+          <button class="nom-btn ${f.nom==='EMB'?'sel-emb':''}" onclick="UI._ef.nom='EMB';render()">EMB</button>
+          <button class="nom-btn ${f.nom==='PB'?'sel-pb':''}" onclick="UI._ef.nom='PB';render()">PB</button>
+        </div>`:'';
+        return `<tr style="background:#FFFBF0">
+          <td><input type="text" value="${UI._ef.num||f.num}" oninput="UI._ef.num=this.value" style="width:120px"></td>
+          <td><input type="date" value="${UI._ef.fecha||f.fecha}" onchange="UI._ef.fecha=this.value" style="width:130px"></td>
+          <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||f.mat}</div></td>
+          <td><input type="number" min="1" value="${UI._ef.cantIni??f.cantIni}" oninput="UI._ef.cantIni=parseInt(this.value)" style="width:90px"></td>
+          <td class="mono ${f.cantRest<=0?'neg':'pos'}">${fmt(f.cantRest)}</td>
+          <td><input type="text" value="${UI._ef.prov??f.prov??''}" oninput="UI._ef.prov=this.value" placeholder="Proveedor" style="width:140px"></td>
+          ${nomOpts?`<td>${nomOpts}</td>`:'<td></td>'}
+          <td style="white-space:nowrap">
+            <button class="btn btn-pr btn-sm" onclick="guardarFact('${f.id}')">Guardar</button>
+            <button class="btn btn-gh btn-sm" onclick="UI.editFact=null;UI._ef={};render()" style="margin-left:4px">Cancelar</button>
+          </td>
+        </tr>`;
+      }
+      return `<tr>
+        <td style="font-weight:500">${f.num}${nomBadgeInline(f.nom)}</td>
+        <td>${f.fecha}</td>
+        <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||f.mat}</div></td>
+        <td class="mono">${fmt(f.cantIni)}</td>
+        <td class="mono ${f.cantRest<=0?'neg':'pos'}">${fmt(f.cantRest)}</td>
+        <td><div class="pb"><div class="pb-fill" style="width:${pct}%;background:${pct>=90?'#B02E1E':'#BA7517'}"></div></div>
+          <span style="font-size:10px;color:#bbb;margin-left:5px">${pct}%</span></td>
+        <td style="color:#aaa;font-size:11px">${f.prov||'—'}</td>
+        ${admin?`<td style="white-space:nowrap">
+          <button class="btn btn-gh btn-sm" onclick="editarFact('${f.id}')">✏️</button>
+          <button class="btn btn-sm" style="background:#FFF0F0;color:#B02E1E;border:0.5px solid #F0C0C0;margin-left:3px" onclick="eliminarFact('${f.id}')">🗑</button>
+        </td>`:''}
+      </tr>`;
+    }).join('');
+  return `
+    <div class="card"><div class="card-h"><span class="card-title">Registrar ingreso de material</span></div><div class="card-body">
+      <div class="row4" style="margin-bottom:10px">
+        <div class="fg"><label>N° Factura *</label><input type="text" value="${UI.ing.num}" placeholder="FAC-2026-001" oninput="UI.ing.num=this.value"></div>
+        <div class="fg"><label>Proveedor</label><input type="text" value="${UI.ing.prov}" placeholder="Nombre del proveedor" oninput="UI.ing.prov=this.value"></div>
+        <div class="fg"><label>Planta destino</label><select onchange="UI.ing.plant=this.value;render()">${plOpts}</select></div>
+        <div class="fg"><label>Fecha</label><input type="date" value="${UI.ing.fecha}" onchange="UI.ing.fecha=this.value"></div>
+      </div>
+      <div class="${showNom?'row4':'row3'}" style="margin-bottom:14px">
+        <div class="fg"><label>Material</label><select onchange="UI.ing.mat=this.value;render()">${matOpts}</select></div>
+        ${showNom?`<div class="fg"><label>NOM</label><div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="nom-btn ${UI.ing.nom==='DEG'?'sel-deg':''}" onclick="UI.ing.nom='DEG';render()">NOM DEG</button>
+          <button class="nom-btn ${UI.ing.nom==='EMB'?'sel-emb':''}" onclick="UI.ing.nom='EMB';render()">NOM EMB</button>
+          <button class="nom-btn ${UI.ing.nom==='PB'?'sel-pb':''}" onclick="UI.ing.nom='PB';render()">NOM PB</button>
+        </div></div>`:''}
+        <div class="fg"><label>Cantidad</label><input type="number" min="1" value="${UI.ing.qty}" placeholder="0" oninput="UI.ing.qty=this.value"></div>
+        <div class="fg"><label>&nbsp;</label><button class="btn btn-pr" onclick="regIng()">Registrar ingreso</button></div>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-h"><span class="card-title">Facturas · ${p?.nom}</span><span style="font-size:11px;color:#bbb">${facts.length} registros</span></div>
+    <div class="ox"><table><thead><tr><th class="tl">N° Factura</th><th class="tl">Fecha</th><th class="tl">Material</th><th>Inicial</th><th class="hl">Disponible</th><th class="tl">Uso</th><th class="tl">Proveedor</th>${admin?'<th></th>':''}</tr></thead><tbody>${fRows}</tbody></table></div></div>`;
+}
+
+// ── TEQUILA A GRANEL ───────────────────────────────────
+function rGranel(){
+  const plOpts=PLANTAS.map(p=>`<option value="${p.id}"${UI.gra.planta===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const all=DB.granel.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const gRows=all.length===0?'<tr><td colspan="8" class="empty">Sin entradas registradas</td></tr>'
+    :all.map(g=>{const pl=PLANT_IDX[g.planta];const pct=g.litros>0?Math.round((g.litros-g.litrosRest)/g.litros*100):0;return `<tr>
+      <td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:5px"></span>${pl?.nom}</td>
+      <td>${g.fecha}</td>
+      <td style="font-weight:500;color:#0F6E56;font-family:'SF Mono',monospace">${g.lote}</td>
+      <td><span class="badge ${g.tipo==='Blanco'?'b-blue':'b-warn'}">${g.tipo}</span></td>
+      <td class="mono">${fmt(g.litros)}</td><td class="mono ${g.litrosRest<=0?'neg':'pos'}">${fmt(g.litrosRest)}</td>
+      <td>${g.pasaporte}</td><td>${g.analisis}</td>
+    </tr>`;}).join('');
+  return `
+    <div class="card"><div class="card-h"><span class="card-title" style="color:#0F6E56">Entrada de Tequila a Granel</span></div><div class="card-body">
+      <div class="info-pill">El granel se descuenta automáticamente al registrar una salida de camión</div>
+      <div class="row4" style="margin-bottom:10px">
+        <div class="fg"><label>Planta</label><select onchange="UI.gra.planta=this.value">${plOpts}</select></div>
+        <div class="fg"><label>Tipo</label><select onchange="UI.gra.tipo=this.value"><option value="Blanco" ${UI.gra.tipo==='Blanco'?'selected':''}>Blanco 100% Agave</option><option value="Reposado" ${UI.gra.tipo==='Reposado'?'selected':''}>Reposado 100% Agave</option></select></div>
+        <div class="fg"><label>Litros</label><input type="number" min="1" value="${UI.gra.litros}" placeholder="0" oninput="UI.gra.litros=this.value"></div>
+        <div class="fg"><label>Fecha</label><input type="date" value="${UI.gra.fecha}" onchange="UI.gra.fecha=this.value"></div>
+      </div>
+      <div class="row3" style="margin-bottom:10px">
+        <div class="fg"><label>N° de Pasaporte *</label><input type="text" value="${UI.gra.pasaporte}" placeholder="PP-2026-001" oninput="UI.gra.pasaporte=this.value"></div>
+        <div class="fg"><label>N° de Análisis *</label><input type="text" value="${UI.gra.analisis}" placeholder="AN-2026-001" oninput="UI.gra.analisis=this.value"></div>
+        <div class="fg"><label>N° de Lote *</label><input type="text" value="${UI.gra.lote}" placeholder="LOTE-JUN-001" oninput="UI.gra.lote=this.value"></div>
+      </div>
+      <div class="fg" style="margin-bottom:14px"><label>Notas (opcional)</label><textarea oninput="UI.gra.notas=this.value">${UI.gra.notas}</textarea></div>
+      <button class="btn btn-teal" onclick="regGranel()">Registrar entrada de granel</button>
+    </div></div>
+    <div class="card"><div class="card-h"><span class="card-title">Historial de granel</span><span style="font-size:11px;color:#bbb">${all.length} registros</span></div>
+    <div class="ox"><table><thead><tr><th class="tl">Planta</th><th class="tl">Fecha</th><th class="tl">Lote</th><th class="tl">Tipo</th><th>Litros totales</th><th class="hteal">Disponibles</th><th class="tl">N° Pasaporte</th><th class="tl">N° Análisis</th></tr></thead><tbody>${gRows}</tbody></table></div></div>`;
+}
+
+// ── SALIDAS ────────────────────────────────────────────
+function rSal(){return UI.wiz.step===1?rSalStep1():rSalStep2();}
+
+function rSalStep1(){
+  const plOpts=PLANTAS.map(p=>`<option value="${p.id}"${UI.wiz.plant===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const prOpts=PRODUCTOS.map(p=>`<option value="${p.id}">${p.nom}</option>`).join('');
+  const prodItems=UI.wiz.prods.length===0?'<div style="font-size:11px;color:#bbb;padding:10px 0;text-align:center">Agrega al menos un producto</div>'
+    :UI.wiz.prods.map((p,i)=>{const pr=PROD_IDX[p.prodId];const lit=(LITROS_TARIMA[p.prodId]||0)*p.tarimas;return `<div class="prod-item"><div><div style="font-size:12px;font-weight:500">${pr?.nom}</div><div style="font-size:11px;color:#aaa;margin-top:2px">${p.tarimas} tar. · <span style="color:#0F6E56">${fmt(lit)} L granel</span></div></div><div style="display:flex;align-items:center;gap:10px"><span class="badge b-warn">${p.tarimas} tar.</span><button class="btn btn-dn btn-sm" onclick="quitarProd(${i})">✕</button></div></div>`;}).join('');
+  const recSal=DB.salidas.slice(0,8);
+  const sRows=recSal.length===0?'<tr><td colspan="5" class="empty">Sin salidas registradas</td></tr>'
+    :recSal.map(s=>{const pl=PLANT_IDX[s.plant];const pts=s.productos.map(p=>`${PROD_IDX[p.prodId]?.nom} ×${p.tarimas}`).join(' / ');const lns=s.consumosGranel?[...new Set(s.consumosGranel.map(c=>c.lote))]:[];return `<tr><td>${s.fecha}</td><td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:4px"></span>${pl?.nom}</td><td style="font-weight:500">${s.camion}</td><td style="font-size:11px">${pts}</td><td style="font-size:10px;color:#0F6E56">${lns.join(', ')||'—'}</td></tr>`;}).join('');
+  return `
+    <div class="wiz-bar"><div class="wiz-s act">1 · Datos del camión y productos</div><div class="wiz-s">2 · Asignar materiales y granel</div></div>
+    <div class="card"><div class="card-h"><span class="card-title">Datos del camión</span></div><div class="card-body">
+      <div class="row3" style="margin-bottom:14px">
+        <div class="fg"><label>Planta de salida</label><select onchange="UI.wiz.plant=this.value;UI.wiz.prods=[];render()">${plOpts}</select></div>
+        <div class="fg"><label>N° Camión / Placas *</label><input type="text" value="${UI.wiz.camion}" placeholder="CAM-12 · ABC-1234" oninput="UI.wiz.camion=this.value"></div>
+        <div class="fg"><label>Fecha de salida</label><input type="date" value="${UI.wiz.fecha}" onchange="UI.wiz.fecha=this.value"></div>
+      </div>
+      <hr class="sep">
+      <div class="sec-title">Productos en este camión</div>
+      <div class="prod-add-row">
+        <div class="fg"><label>Producto</label><select id="ap">${prOpts}</select></div>
+        <div class="fg"><label>Tarimas</label><input type="number" id="at" min="1" value="1" style="width:90px"></div>
+        <div class="fg"><label>&nbsp;</label><button class="btn btn-gh" onclick="addProd()">+ Agregar</button></div>
+      </div>
+      <div style="margin-bottom:14px">${prodItems}</div>
+      ${UI.wiz.prods.length>0?`<button class="btn btn-pr" onclick="irStep2()">Continuar → Asignar materiales y granel</button>`:''}
+    </div></div>
+    <div class="card"><div class="card-h"><span class="card-title">Historial de salidas</span></div>
+    <div class="ox"><table><thead><tr><th class="tl">Fecha</th><th class="tl">Planta</th><th class="tl">Camión</th><th class="tl">Productos</th><th class="tl" style="color:#0F6E56">Lotes granel</th></tr></thead><tbody>${sRows}</tbody></table></div></div>`;
+}
+
+function rSalStep2(){
+  const needed=calcNeeded(UI.wiz.prods);
+  const litNeed=litrosNecesarios(UI.wiz.prods);
+  const pl=PLANT_IDX[UI.wiz.plant];
+  const chips=UI.wiz.prods.map(p=>`<span class="chip"><strong>${PROD_IDX[p.prodId]?.nom}</strong> · ${p.tarimas} tar. · <span style="color:#0F6E56">${fmt((LITROS_TARIMA[p.prodId]||0)*p.tarimas)} L</span></span>`).join('');
+  const matBlocks=Object.entries(needed).map(([mid,qty])=>{
+    const m=MAT_IDX[mid];if(!UI.wizAlloc[mid])UI.wizAlloc[mid]={};
+    const tot=Object.values(UI.wizAlloc[mid]).reduce((s,v)=>s+(v||0),0);const diff=qty-tot;
+    const stHtml=diff===0?`<span class="alloc-st st-ok">✓ Completo</span>`:diff>0?`<span class="alloc-st st-err">Faltan ${fmt(diff)}</span>`:`<span class="alloc-st st-warn">Exceso ${fmt(-diff)}</span>`;
+    const avail=factsAvail(UI.wiz.plant,mid);
+    const fRows=avail.length===0?`<div style="padding:10px 14px;font-size:11px;color:#B02E1E">⚠ Sin stock de ${m?.rdv} ${m?.nom} en ${pl?.nom}</div>`
+      :avail.map(f=>{const cur=UI.wizAlloc[mid]?.[f.id]||0;return `<div class="alloc-row"><div><div class="alloc-fnum">${f.num}${nomBadgeInline(f.nom)}</div><div class="alloc-fdisp">${f.prov||'—'} · ${f.fecha} · Disp: <strong>${fmt(f.cantRest)}</strong></div></div><input type="number" min="0" max="${f.cantRest}" value="${cur||''}" placeholder="0" oninput="setAlloc('${mid}','${f.id}',+this.value);updSt('${mid}',${qty})"></div>`;}).join('');
+    return `<div class="alloc-block"><div class="alloc-hdr mat"><span class="alloc-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||mid}</span><div style="display:flex;align-items:center;gap:12px"><span class="alloc-need" style="color:#BA7517">Necesario: ${fmt(qty)}</span><span id="ast-${mid}">${stHtml}</span></div></div>${fRows}</div>`;
+  }).join('');
+  const granelBlocks=Object.entries(litNeed).filter(([,l])=>l>0).map(([tipo,lit])=>{
+    if(!UI.wizGranel[tipo])UI.wizGranel[tipo]={};
+    const tot=Object.values(UI.wizGranel[tipo]).reduce((s,v)=>s+(v||0),0);const diff=lit-tot;
+    const stHtml=diff===0?`<span class="alloc-st st-ok">✓ Completo</span>`:diff>0?`<span class="alloc-st st-err">Faltan ${fmt(diff)} L</span>`:`<span class="alloc-st st-warn">Exceso ${fmt(-diff)} L</span>`;
+    const avail=granelAvail(UI.wiz.plant,tipo);
+    const gRows=avail.length===0?`<div style="padding:10px 14px;font-size:11px;color:#B02E1E">⚠ Sin lotes de granel ${tipo} en ${pl?.nom}</div>`
+      :avail.map(g=>{const cur=UI.wizGranel[tipo]?.[g.id]||0;return `<div class="alloc-row"><div><div class="alloc-fnum" style="color:#0F6E56">${g.lote}</div><div class="alloc-fdisp">${g.pasaporte} · ${g.analisis} · Disp: <strong style="color:#0F6E56">${fmt(g.litrosRest)} L</strong></div></div><input type="number" min="0" max="${g.litrosRest}" value="${cur||''}" placeholder="0 L" oninput="setAllocGranel('${tipo}','${g.id}',+this.value);updStGranel('${tipo}',${lit})"></div>`;}).join('');
+    return `<div class="alloc-block"><div class="alloc-hdr gra"><span class="alloc-name" style="color:#0F6E56">Tequila ${tipo} a granel</span><div style="display:flex;align-items:center;gap:12px"><span class="alloc-need" style="color:#0F6E56">Necesario: ${fmt(lit)} L</span><span id="ast-gra-${tipo}">${stHtml}</span></div></div>${gRows}</div>`;
+  }).join('');
+  return `
+    <div class="wiz-bar"><div class="wiz-s done">1 · Datos del camión ✓</div><div class="wiz-s act">2 · Asignar materiales y granel</div></div>
+    <div class="insight"><strong>Camión ${UI.wiz.camion||'(sin #)'}</strong> · ${pl?.nom} · ${UI.wiz.fecha}<div class="chips" style="margin-top:6px">${chips}</div></div>
+    <div class="sec-title">Materiales de envasado</div>${matBlocks}
+    <div class="sec-title" style="margin-top:16px;color:#0F6E56">Tequila a granel</div>${granelBlocks}
+    <div style="display:flex;gap:10px;margin-top:16px;padding-bottom:2rem">
+      <button class="btn btn-gh" onclick="UI.wiz.step=1;render()">← Volver</button>
+      <button class="btn btn-ok" onclick="confirmar()">✓ Confirmar salida del camión</button>
+    </div>`;
+}
+
+// ── TRASLADOS ──────────────────────────────────────────
+function rTraslados(){
+  const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.tsl.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
+  const plantOpts=(excl)=>PLANTAS.filter(p=>p.id!==excl).map(p=>`<option value="${p.id}">${p.nom}</option>`).join('');
+  const origenOpts=PLANTAS.map(p=>`<option value="${p.id}"${UI.tsl.origen===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const destinoOpts=PLANTAS.filter(p=>p.id!==UI.tsl.origen).map(p=>`<option value="${p.id}"${UI.tsl.destino===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const stockOrigen=stockMat(UI.tsl.origen,UI.tsl.mat);
+  const pOr=PLANT_IDX[UI.tsl.origen],pDst=PLANT_IDX[UI.tsl.destino];
+
+  const hist=DB.traslados.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const hRows=hist.length===0
+    ?'<tr><td colspan="6" class="empty">Sin traslados registrados</td></tr>'
+    :hist.map(t=>{
+      const m=MAT_IDX[t.mat];
+      const pO=PLANT_IDX[t.origen],pD=PLANT_IDX[t.destino];
+      return `<tr>
+        <td style="color:#888">${t.fecha}</td>
+        <td><span style="font-size:10px;font-weight:600;color:${pO?.color}">${pO?.nom}</span>
+            <span style="color:#bbb;margin:0 4px">→</span>
+            <span style="font-size:10px;font-weight:600;color:${pD?.color}">${pD?.nom}</span></td>
+        <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||t.mat}</div></td>
+        <td class="mono" style="color:#0F6E56">${fmt(t.cant)}</td>
+        <td style="font-size:11px;color:#aaa">${t.nota||'—'}</td>
+        <td style="font-size:10px;color:#bbb">${t.usuario||'admin'}</td>
+      </tr>`;
+    }).join('');
+
+  return `<div class="card">
+    <div class="card-h"><span class="card-title">Nuevo traslado</span></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:#888;margin-bottom:12px">Mueve material de una bodega a otra. Se descuenta del origen y se suma al destino.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
+        <div class="fg"><label>Bodega origen</label>
+          <select onchange="UI.tsl.origen=this.value;if(UI.tsl.destino===this.value)UI.tsl.destino=UI.tsl.origen==='degollado'?'cuermaro':'degollado';render()">${origenOpts}</select></div>
+        <div class="fg"><label>Bodega destino</label>
+          <select onchange="UI.tsl.destino=this.value;render()">${destinoOpts}</select></div>
+        <div class="fg"><label>Material</label>
+          <select onchange="UI.tsl.mat=this.value;render()">${matOpts}</select></div>
+        <div class="fg"><label>Cantidad <span style="color:#888;font-size:10px">(disponible: ${fmt(stockOrigen)})</span></label>
+          <input type="number" min="1" max="${stockOrigen}" value="${UI.tsl.qty}" placeholder="0" oninput="UI.tsl.qty=this.value"></div>
+        <div class="fg"><label>Fecha</label>
+          <input type="date" value="${UI.tsl.fecha}" onchange="UI.tsl.fecha=this.value"></div>
+        <div class="fg"><label>Nota <span style="color:#bbb;font-size:10px">(opcional)</span></label>
+          <input type="text" value="${UI.tsl.nota}" placeholder="motivo del traslado..." oninput="UI.tsl.nota=this.value"></div>
+        <div class="fg"><label>&nbsp;</label>
+          <button class="btn btn-pr" onclick="regTraslado()">Registrar traslado</button></div>
+      </div>
+      ${stockOrigen<=0?`<div style="margin-top:8px;font-size:11px;color:#B02E1E">⚠ Sin stock disponible de este material en ${pOr?.nom}</div>`:''}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="card-title">Historial de traslados</span>
+      <span style="font-size:11px;color:#bbb">${hist.length} registros</span></div>
+    <div class="ox"><table><thead><tr>
+      <th class="tl">Fecha</th><th class="tl">Ruta</th><th class="tl">Material</th>
+      <th>Cantidad</th><th class="tl">Nota</th><th class="tl">Usuario</th>
+    </tr></thead><tbody>${hRows}</tbody></table></div>
+  </div>`;
+}
+
+function editarFact(id){UI.editFact=String(id);UI._ef={};render();}
+
+async function guardarFact(id){
+  const f=DB.facturas.find(x=>String(x.id)===String(id));
+  if(!f)return;
+  const updates={
+    num:UI._ef.num??f.num,
+    fecha:UI._ef.fecha??f.fecha,
+    prov:UI._ef.prov??f.prov??'',
+    cantIni:UI._ef.cantIni??f.cantIni,
+    nom:UI._ef.nom??f.nom??null,
+  };
+  // Si cambió el inicial, ajustamos el disponible proporcionalmente
+  if(updates.cantIni!==f.cantIni){
+    const consumido=f.cantIni-f.cantRest;
+    updates.cantRest=Math.max(0,updates.cantIni-consumido);
+  } else { updates.cantRest=f.cantRest; }
+  try{
+    const res=await api('/api/factura/'+id,{method:'PUT',body:JSON.stringify(updates)});
+    if(!res.ok)throw new Error();
+    Object.assign(f,updates);
+    UI.editFact=null;UI._ef={};
+    toast('✓ Factura actualizada');render();
+  }catch(e){toast('Error al guardar',true);}
+}
+
+async function eliminarFact(id){
+  const f=DB.facturas.find(x=>String(x.id)===String(id));
+  if(!f)return;
+  const m=MAT_IDX[f.mat];
+  if(!confirm(`¿Eliminar la factura ${f.num}?\n${m?.nom} · ${fmt(f.cantIni)} uds\n\nEsta acción no se puede deshacer.`))return;
+  try{
+    const res=await api('/api/factura/'+id,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    DB.facturas=DB.facturas.filter(x=>String(x.id)!==String(id));
+    toast(`✓ Factura ${f.num} eliminada`);render();
+  }catch(e){toast('Error al eliminar',true);}
+}
+
+async function regTraslado(){
+  const qty=parseInt(UI.tsl.qty);
+  if(!qty||qty<=0){toast('Ingresa una cantidad válida',true);return;}
+  if(UI.tsl.origen===UI.tsl.destino){toast('Origen y destino no pueden ser iguales',true);return;}
+  const stock=stockMat(UI.tsl.origen,UI.tsl.mat);
+  if(qty>stock){toast(`Solo hay ${fmt(stock)} disponibles en ${PLANT_IDX[UI.tsl.origen]?.nom}`,true);return;}
+  const traslado={
+    id:Date.now(),origen:UI.tsl.origen,destino:UI.tsl.destino,
+    mat:UI.tsl.mat,cant:qty,fecha:UI.tsl.fecha,
+    nota:UI.tsl.nota.trim(),
+    usuario:sessionStorage.getItem('rdv_user')||'admin'
+  };
+  try{
+    const res=await api('/api/traslado',{method:'POST',body:JSON.stringify(traslado)});
+    if(!res.ok)throw new Error();
+    // Actualizar localmente: descontar del origen
+    let restante=qty;
+    DB.facturas.filter(f=>f.plant===UI.tsl.origen&&f.mat===UI.tsl.mat&&f.cantRest>0)
+      .sort((a,b)=>a.cantRest-b.cantRest)
+      .forEach(f=>{if(restante<=0)return;const usar=Math.min(f.cantRest,restante);f.cantRest-=usar;restante-=usar;});
+    // Sumar al destino
+    const mnom=MAT_IDX[UI.tsl.mat]?.nom||UI.tsl.mat;
+    DB.facturas.push({id:traslado.id,num:`TRASLADO-${UI.tsl.origen.toUpperCase().slice(0,3)}`,
+      prov:`Traslado desde ${PLANT_IDX[UI.tsl.origen]?.nom}`,
+      plant:UI.tsl.destino,mat:UI.tsl.mat,cantIni:qty,cantRest:qty,fecha:UI.tsl.fecha});
+    DB.traslados.unshift(traslado);
+    const pO=PLANT_IDX[UI.tsl.origen]?.nom,pD=PLANT_IDX[UI.tsl.destino]?.nom;
+    toast(`✓ ${fmt(qty)} ${mnom} · ${pO} → ${pD}`);
+    UI.tsl.qty='';UI.tsl.nota='';render();
+  }catch(e){toast('Error al registrar traslado',true);}
+}
+
+// ── TRAZABILIDAD ───────────────────────────────────────
+function rTraz(){
+  const modoOpts=[{id:'camion',lbl:'Por número de camión'},{id:'factura',lbl:'Por factura / proveedor'},{id:'lote',lbl:'Por lote de tequila granel'}];
+  const mSelect=modoOpts.map(m=>`<option value="${m.id}"${UI.traz.modo===m.id?' selected':''}>${m.lbl}</option>`).join('');
+  const q=UI.traz.q.toLowerCase().trim(),modo=UI.traz.modo;
+  const salCard=s=>{
+    const pl=PLANT_IDX[s.plant];
+    const prods=s.productos.map(p=>`<strong>${PROD_IDX[p.prodId]?.nom}</strong> × ${p.tarimas} tarimas (${fmt((LITROS_TARIMA[p.prodId]||0)*p.tarimas)} L)`).join('<br>');
+    const factsU=[...new Set(s.consumos.map(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return f?.num||'?'}))];
+    const lotesU=s.consumosGranel?[...new Set(s.consumosGranel.map(c=>c.lote))]:[];
+    const matLines=s.consumos.map(c=>{const m=MAT_IDX[c.mat];const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return `<div class="dash-row" style="font-size:11px"><span class="dash-lbl"><span style="font-size:9px;font-family:'SF Mono',monospace;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 3px;margin-right:3px">${m?.rdv||''}</span>${m?.nom||c.mat}${nomBadgeInline(f?.nom)}</span><span>${fmt(c.cant)} · <span style="color:#BA7517">${f?.num||'?'}</span></span></div>`;}).join('');
+    const granelLines=s.consumosGranel?s.consumosGranel.map(c=>`<div class="dash-row" style="font-size:11px"><span class="dash-lbl">Tequila ${c.tipo}</span><span><strong style="color:#0F6E56">${fmt(c.litros)} L</strong> · <span style="color:#0F6E56">${c.lote}</span></span></div>`).join(''):'';
+    return `<div class="traz-card"><div class="traz-h"><div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${pl?.color}"></span><span style="font-size:14px;font-weight:600">${s.camion}</span><span style="font-size:11px;color:#aaa">${s.fecha} · ${pl?.nom}</span></div><span class="badge b-out">Salida</span></div>
+      <div class="traz-body"><div class="row2">
+        <div><div class="sec-title">Productos cargados</div><div style="font-size:12px;line-height:2">${prods}</div>
+          <div class="sec-title" style="margin-top:10px">Facturas de materiales</div>
+          ${factsU.map(fn=>`<span class="badge b-warn" style="margin-right:4px;margin-bottom:4px">${fn}</span>`).join('')}
+          <div class="sec-title" style="margin-top:10px;color:#0F6E56">Lotes de granel</div>
+          ${lotesU.length?lotesU.map(l=>`<span class="badge b-teal" style="margin-right:4px">${l}</span>`).join(''):'<span style="font-size:11px;color:#ccc">Sin granel</span>'}
+        </div>
+        <div><div class="sec-title">Materiales por factura</div>${matLines}
+          ${granelLines?`<div class="sec-title" style="margin-top:10px;color:#0F6E56">Granel por lote</div>${granelLines}`:''}
+        </div>
+      </div></div></div>`;
+  };
+  let cards='';
+  if(modo==='lote'){
+    const gf=DB.granel.filter(g=>!q||g.lote.toLowerCase().includes(q)||g.pasaporte.toLowerCase().includes(q)||g.analisis.toLowerCase().includes(q));
+    if(!gf.length)cards=`<div class="empty">Sin lotes${q?` para "${UI.traz.q}"`:'.'}</div>`;
+    else cards=gf.map(g=>{
+      const pl=PLANT_IDX[g.planta];
+      const salRel=DB.salidas.filter(s=>s.plant===g.planta&&s.consumosGranel&&s.consumosGranel.some(c=>String(c.gId)===String(g.id)));
+      const pct=g.litros>0?Math.round((g.litros-g.litrosRest)/g.litros*100):0;
+      return `<div class="traz-card"><div class="traz-h"><div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${pl?.color}"></span><span style="font-size:14px;font-weight:600;color:#0F6E56">${g.lote}</span><span class="badge ${g.tipo==='Blanco'?'b-blue':'b-warn'}">${g.tipo}</span><span style="font-size:11px;color:#aaa">${g.fecha} · ${pl?.nom}</span></div><span class="badge b-teal">${fmt(g.litrosRest)} L disp.</span></div>
+        <div class="traz-body"><div class="row3" style="margin-bottom:12px">
+          <div><div class="sec-title" style="margin-bottom:3px">N° Pasaporte</div><div style="font-size:13px;font-weight:500">${g.pasaporte}</div></div>
+          <div><div class="sec-title" style="margin-bottom:3px">N° Análisis</div><div style="font-size:13px;font-weight:500">${g.analisis}</div></div>
+          <div><div class="sec-title" style="margin-bottom:3px">Consumo</div>
+            <div class="pb" style="width:100px;margin-bottom:3px"><div class="pb-fill" style="width:${pct}%;background:${pct>=90?'#B02E1E':'#0F6E56'}"></div></div>
+            <div style="font-size:11px;color:#aaa">${fmt(g.litros-g.litrosRest)} L / ${fmt(g.litros)} L (${pct}%)</div></div>
+        </div>
+        <div class="sec-title">Salidas con este lote</div>
+        ${salRel.length===0?'<div style="font-size:11px;color:#ccc">Sin salidas aún</div>'
+          :salRel.map(s=>{const litU=s.consumosGranel.filter(c=>String(c.gId)===String(g.id)).reduce((sum,c)=>sum+c.litros,0);const pts=s.productos.filter(p=>PROD_IDX[p.prodId]?.tipo===g.tipo).map(p=>`${PROD_IDX[p.prodId]?.nom} ×${p.tarimas}`).join(', ');return `<div class="dash-row"><span class="dash-lbl">Camión <strong>${s.camion}</strong> · ${s.fecha}</span><span style="font-size:11px"><span style="color:#0F6E56;font-weight:500">${fmt(litU)} L</span> · ${pts}</span></div>`;}).join('')}
+        </div></div>`;
+    }).join('');
+  } else {
+    const sf=DB.salidas.filter(s=>{if(!q)return true;if(modo==='camion')return s.camion.toLowerCase().includes(q);return s.consumos.some(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return f?.num.toLowerCase().includes(q)||f?.prov?.toLowerCase().includes(q);});});
+    if(!sf.length)cards=`<div class="empty">Sin resultados${q?` para "${UI.traz.q}"`:'.'}</div>`;
+    else cards=sf.map(salCard).join('');
+  }
+  return `<div class="srch-bar">
+    <select style="max-width:240px" onchange="UI.traz.modo=this.value;UI.traz.q='';render()">${mSelect}</select>
+    <input type="text" placeholder="${modo==='lote'?'Lote, pasaporte o análisis…':modo==='camion'?'Número de camión…':'Factura o proveedor…'}" value="${UI.traz.q}" oninput="UI.traz.q=this.value;render()">
+    <button class="btn btn-gh" onclick="UI.traz.q='';render()">Limpiar</button>
+  </div>${cards}`;
+}
+
+// ═══════════════════════════════════════
+//  ACCIONES
+// ═══════════════════════════════════════
+function goTab(t){UI.tab=t;render();}
+async function regIng(){if(!isAdmin()){toast('Solo lectura: no puedes registrar',true);return;}const qty=parseInt(UI.ing.qty);if(!UI.ing.num.trim()){toast('Ingresa el número de factura',true);return;}if(!qty||qty<=0){toast('Ingresa una cantidad válida',true);return;}const entry={id:Date.now(),num:UI.ing.num.trim(),prov:UI.ing.prov.trim(),plant:UI.ing.plant,mat:UI.ing.mat,cantIni:qty,cantRest:qty,fecha:UI.ing.fecha};if(isEtiq(UI.ing.mat)) entry.nom=UI.ing.nom;try{const res=await api('/api/factura',{method:'POST',body:JSON.stringify(entry)});if(!res.ok)throw new Error();DB.facturas.push(entry);toast(`✓ ${fmt(qty)} uds · ${MAT_IDX[UI.ing.mat]?.rdv} ${MAT_IDX[UI.ing.mat]?.nom}${isEtiq(UI.ing.mat)?' · NOM '+UI.ing.nom:''}`);UI.ing={num:'',prov:'',plant:UI.ing.plant,mat:UI.ing.mat,qty:'',fecha:hoy(),nom:UI.ing.nom};render();}catch(e){toast('Error al guardar',true);}}
+async function regGranel(){if(!isAdmin()){toast('Solo lectura: no puedes registrar',true);return;}if(!UI.gra.pasaporte.trim()){toast('Ingresa el N° de Pasaporte',true);return;}if(!UI.gra.analisis.trim()){toast('Ingresa el N° de Análisis',true);return;}if(!UI.gra.lote.trim()){toast('Ingresa el N° de Lote',true);return;}const litros=parseFloat(UI.gra.litros);if(!litros||litros<=0){toast('Ingresa los litros',true);return;}const entry={id:Date.now(),pasaporte:UI.gra.pasaporte.trim(),analisis:UI.gra.analisis.trim(),lote:UI.gra.lote.trim(),planta:UI.gra.planta,tipo:UI.gra.tipo,litros,litrosRest:litros,fecha:UI.gra.fecha,notas:UI.gra.notas.trim()};try{const res=await api('/api/granel',{method:'POST',body:JSON.stringify(entry)});if(!res.ok)throw new Error();DB.granel.push(entry);toast(`✓ Lote ${UI.gra.lote} · ${fmt(litros)} L`);UI.gra={pasaporte:'',analisis:'',lote:'',planta:UI.gra.planta,tipo:UI.gra.tipo,litros:'',fecha:hoy(),notas:''};render();}catch(e){toast('Error al guardar',true);}}
+function addProd(){const pid=document.getElementById('ap')?.value;const tars=parseInt(document.getElementById('at')?.value)||1;if(!pid)return;const ex=UI.wiz.prods.find(p=>p.prodId===pid);if(ex)ex.tarimas+=tars;else UI.wiz.prods.push({prodId:pid,tarimas:tars});render();}
+function quitarProd(i){UI.wiz.prods.splice(i,1);render();}
+function addSimProd(){const pid=document.getElementById('simProd')?.value;const tars=parseInt(document.getElementById('simTar')?.value)||1;if(!pid)return;const ex=UI.sim.prods.find(p=>p.prodId===pid);if(ex)ex.tarimas+=tars;else UI.sim.prods.push({prodId:pid,tarimas:tars});render();}
+function quitarSimProd(i){UI.sim.prods.splice(i,1);render();}
+function limpiarSim(){UI.sim.prods=[];render();}
+function irStep2(){if(!UI.wiz.camion.trim()){toast('Ingresa el número o placas del camión',true);return;}if(!UI.wiz.prods.length){toast('Agrega al menos un producto',true);return;}UI.wizAlloc={};UI.wizGranel={};UI.wiz.step=2;render();}
+function setAlloc(mid,fid,val){if(!UI.wizAlloc[mid])UI.wizAlloc[mid]={};UI.wizAlloc[mid][fid]=Math.max(0,val||0);}
+function setAllocGranel(tipo,gid,val){if(!UI.wizGranel[tipo])UI.wizGranel[tipo]={};UI.wizGranel[tipo][gid]=Math.max(0,val||0);}
+function updSt(mid,needed){const tot=Object.values(UI.wizAlloc[mid]||{}).reduce((s,v)=>s+(v||0),0);const diff=needed-tot;const el=document.getElementById(`ast-${mid}`);if(!el)return;el.innerHTML=diff===0?`<span class="alloc-st st-ok">✓ Completo</span>`:diff>0?`<span class="alloc-st st-err">Faltan ${fmt(diff)}</span>`:`<span class="alloc-st st-warn">Exceso ${fmt(-diff)}</span>`;}
+function updStGranel(tipo,needed){const tot=Object.values(UI.wizGranel[tipo]||{}).reduce((s,v)=>s+(v||0),0);const diff=needed-tot;const el=document.getElementById(`ast-gra-${tipo}`);if(!el)return;el.innerHTML=diff===0?`<span class="alloc-st st-ok">✓ Completo</span>`:diff>0?`<span class="alloc-st st-err">Faltan ${fmt(diff)} L</span>`:`<span class="alloc-st st-warn">Exceso ${fmt(-diff)} L</span>`;}
+async function confirmar(){
+  if(!isAdmin()){toast('Solo lectura: no puedes registrar salidas',true);return;}
+  const needed=calcNeeded(UI.wiz.prods),litNeed=litrosNecesarios(UI.wiz.prods);
+  const consumos=[];let ok=true;
+  Object.entries(needed).forEach(([mid,qty])=>{const alloc=UI.wizAlloc[mid]||{};const tot=Object.values(alloc).reduce((s,v)=>s+(v||0),0);if(tot!==qty)ok=false;Object.entries(alloc).forEach(([fid,cant])=>{if(cant>0)consumos.push({mat:mid,fid:fid,cant});});});
+  const consumosGranel=[];
+  Object.entries(litNeed).filter(([,l])=>l>0).forEach(([tipo,lit])=>{const alloc=UI.wizGranel[tipo]||{};const tot=Object.values(alloc).reduce((s,v)=>s+(v||0),0);if(tot!==lit)ok=false;Object.entries(alloc).forEach(([gid,litros])=>{if(litros>0){const g=DB.granel.find(x=>String(x.id)===String(gid));consumosGranel.push({gId:gid,lote:g?.lote||'?',tipo,litros});}});});
+  if(!ok&&!confirm('Hay materiales o litros sin asignar completamente.\n¿Confirmar de todas formas?'))return;
+  const salida={id:Date.now(),camion:UI.wiz.camion,plant:UI.wiz.plant,fecha:UI.wiz.fecha,productos:[...UI.wiz.prods],consumos,consumosGranel};
+  try{
+    const res=await api('/api/salida',{method:'POST',body:JSON.stringify(salida)});
+    if(!res.ok)throw new Error();
+    consumos.forEach(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));if(f)f.cantRest=Math.max(0,f.cantRest-c.cant);});
+    consumosGranel.forEach(c=>{const g=DB.granel.find(x=>String(x.id)===String(c.gId));if(g)g.litrosRest=Math.max(0,g.litrosRest-c.litros);});
+    DB.salidas.unshift(salida);
+    toast(`✓ Camión ${UI.wiz.camion} confirmado`);
+    UI.wiz={step:1,camion:'',plant:UI.wiz.plant,fecha:hoy(),prods:[]};UI.wizAlloc={};UI.wizGranel={};render();
+  }catch(e){toast('Error al guardar la salida',true);}
+}
+function detalleFact(matId){const m=MAT_IDX[matId];const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===matId);if(!facts.length){alert(`Sin facturas de ${m?.rdv} ${m?.nom}`);return;}let msg=`${m?.rdv} · ${m?.nom} · ${PLANT_IDX[UI.plant]?.nom}\n${'─'.repeat(44)}\n`;facts.forEach(f=>{const pct=f.cantIni>0?Math.round((1-f.cantRest/f.cantIni)*100):0;msg+=`\nFactura: ${f.num}${f.nom?' [NOM '+f.nom+']':''}\nProveedor: ${f.prov||'N/A'}\nFecha: ${f.fecha}\nInicial: ${fmt(f.cantIni)} | Disponible: ${fmt(f.cantRest)} | ${pct}% consumido\n`;});alert(msg);}
+function expInv(){const p=PLANT_IDX[UI.plant];const rows=[['Código','Categoría','Material','Inicial','Consumido','Disponible']];['Botellas','Etiquetas','Insumos'].forEach(cat=>{MATS.filter(m=>m.cat===cat).forEach(m=>{const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);if(!facts.length)return;const ini=facts.reduce((s,f)=>s+f.cantIni,0),rest=facts.reduce((s,f)=>s+f.cantRest,0);rows.push([m.rdv,cat,m.nom,ini,ini-rest,rest]);});});const csv='\uFEFF'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`RDV_${p?.nom}_${hoy()}.csv`;a.click();}
+
+// ── INIT ──
+async function boot(){
+  if(getToken()){
+    try{
+      await loadDB();
+      document.getElementById('login-screen').style.display='none';
+      render();
+    }catch(e){ showLogin(); }
+  } else {
+    showLogin();
+  }
+  document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
+}
+boot();
+</script>
+</body>
+</html>
