@@ -296,7 +296,8 @@ let UI={
   editFact:null,
   collapsedCats:new Set(),
   prog:{camion:'',plant:'degollado',fecha:new Date().toISOString().split('T')[0],prods:[],notas:''},
-  editProg:null
+  editProg:null,
+  sol:{plant:'degollado',mat:'bot_1l',cant:'',prov:'',fecha:new Date().toISOString().split('T')[0],nom:'DEG'}
 };
 
 function hoy(){return new Date().toISOString().split('T')[0];}
@@ -371,18 +372,18 @@ async function marcarLlegada(plant,mat){
   if(!ents.length)return;
   const total=ents.reduce((s,t)=>s+t.cant,0);
   const m=MAT_IDX[mat];
-  if(!confirm(`¿Marcar llegada de ${fmt(total)} ${m?.nom}?\nSe sumará a Disponible y saldrá de En tránsito.`)){render();return;}
+  if(!confirm(`¿Marcar llegada de ${fmt(total)} ${m?.nom}?\nSe sumará a Disponible y saldrá de Solicitados.`)){render();return;}
   try{
     const res=await api('/api/llegada',{method:'POST',body:JSON.stringify({plant,mat})});
     if(!res.ok)throw new Error();
     const b=Date.now();
     ents.forEach((t,i)=>{
-      const entry={id:b+i,num:'LLEGADA-TRANSITO',prov:'Entrega recibida',plant,mat,cantIni:t.cant,cantRest:t.cant,fecha:hoy()};
+      const entry={id:b+i,num:'LLEGADA-SOLICITUD',prov:t.proveedor||'Entrega recibida',plant,mat,cantIni:t.cant,cantRest:t.cant,fecha:hoy()};
       if(t.nom)entry.nom=t.nom;
       DB.facturas.push(entry);
     });
     DB.transito=DB.transito.filter(t=>!(t.plant===plant&&t.mat===mat));
-    toast(`✓ Llegada registrada: ${fmt(total)} ${m?.nom}`);
+    toast(`✓ Llegada registrada: ${fmt(total)} ${m?.nom}${ents[0]?.proveedor?' · '+ents[0].proveedor:''}`);
     render();
   }catch(e){toast('Error al registrar llegada',true);render();}
 }
@@ -481,7 +482,7 @@ function rDash(){
   const proxEmb=DB.programados.filter(p=>p.fecha>=hoyStr).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
   const recSal=DB.salidas.slice(0,5);
 
-  // En tránsito
+  // Solicitados
   const nTransito=DB.transito.length;
 
   // ── KPI STRIP ──
@@ -507,9 +508,9 @@ function rDash(){
       <div style="font-size:10px;color:#bbb;margin-top:4px">requieren atención</div>
     </div>
     <div style="background:#fff;padding:14px 18px">
-      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">En tránsito</div>
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Solicitados</div>
       <div style="font-size:24px;font-weight:700;color:${nTransito>0?'#0F6E56':'#bbb'}">${nTransito}</div>
-      <div style="font-size:10px;color:#bbb;margin-top:4px">materiales pendientes</div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">materiales en pedido</div>
     </div>
     <div style="background:#fff;padding:14px 18px">
       <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Próximo programado</div>
@@ -724,13 +725,55 @@ function rInvMaterial(){
 
   const simHead=simOn?`<th class="tl" style="color:#BA7517;background:#FFF8F0">Simula uso</th><th class="tl" style="color:#BA7517;background:#FFF8F0">Quedaría</th>`:'';
 
+  // Panel de materiales solicitados
+  const solList=DB.transito.filter(t=>t.plant===UI.plant);
+  const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.sol.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
+  const showNomSol=isEtiq(UI.sol.mat);
+  const solPanel=`<div class="card" style="border-color:#9FE1CB;margin-bottom:16px">
+    <div class="card-h" style="background:#F3FBF5">
+      <span class="card-title" style="color:#0F6E56">📦 Materiales Solicitados · ${p?.nom}</span>
+      <span style="font-size:11px;color:#bbb">${solList.length} pendientes</span>
+    </div>
+    <div class="card-body" style="padding:16px">
+      ${isAdmin()?`<div style="font-size:11px;color:#888;margin-bottom:12px">Registra materiales pedidos a proveedores que aún no han llegado.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-bottom:12px">
+        <div class="fg"><label>Material</label><select onchange="UI.sol.mat=this.value;render()">${matOpts}</select></div>
+        <div class="fg"><label>Cantidad</label><input type="number" min="1" value="${UI.sol.cant}" placeholder="0" oninput="UI.sol.cant=this.value"></div>
+        <div class="fg"><label>Proveedor</label><input type="text" value="${UI.sol.prov}" placeholder="Nombre del proveedor..." oninput="UI.sol.prov=this.value"></div>
+        <div class="fg"><label>Fecha pedido</label><input type="date" value="${UI.sol.fecha}" onchange="UI.sol.fecha=this.value"></div>
+        ${showNomSol?`<div class="fg"><label>NOM</label><div style="display:flex;gap:6px">
+          <button class="nom-btn ${UI.sol.nom==='DEG'?'sel-deg':''}" onclick="UI.sol.nom='DEG';render()">DEG</button>
+          <button class="nom-btn ${UI.sol.nom==='EMB'?'sel-emb':''}" onclick="UI.sol.nom='EMB';render()">EMB</button>
+          <button class="nom-btn ${UI.sol.nom==='PB'?'sel-pb':''}" onclick="UI.sol.nom='PB';render()">PB</button>
+        </div></div>`:''}
+        <div class="fg"><label>&nbsp;</label><button class="btn btn-pr" onclick="regSolicitud()">+ Registrar pedido</button></div>
+      </div>`:''}
+      ${solList.length===0?`<div style="font-size:11px;color:#bbb;text-align:center;padding:8px 0">Sin materiales solicitados en ${p?.nom}</div>`:`
+      <div class="ox"><table><thead><tr>
+        <th class="tl">Material</th><th class="tl">Proveedor</th><th>Cantidad</th><th class="tl">Fecha pedido</th><th></th>
+      </tr></thead><tbody>
+      ${solList.map(t=>{const m=MAT_IDX[t.mat];return `<tr>
+        <td><div class="mat-name"><span class="rdv-code">${m?.rdv||''}</span>${m?.nom||t.mat}</div>${t.nom?nomBadgeInline(t.nom):''}</td>
+        <td style="font-size:11px;color:#555">${t.proveedor||'—'}</td>
+        <td class="mono" style="color:#0F6E56">${fmt(t.cant)}</td>
+        <td style="color:#aaa">${t.fechaPedido||'—'}</td>
+        <td style="white-space:nowrap">
+          ${isAdmin()?`<label style="font-size:10px;color:#0F6E56;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap"><input type="checkbox" onchange="marcarLlegada('${UI.plant}','${t.mat}')" style="width:auto;margin:0;cursor:pointer"> ya llegó</label>`:''}
+          ${isAdmin()?`<button class="btn btn-sm" style="background:#FFF0F0;color:#B02E1E;border:0.5px solid #F0C0C0;margin-left:4px" onclick="eliminarSolicitud('${t.id}')">🗑</button>`:''}
+        </td>
+      </tr>`;}).join('')}
+      </tbody></table></div>`}
+    </div>
+  </div>`;
+
   return `
+    ${solPanel}
     ${simPanel}
     <div class="card"><div class="card-h">
       <span class="card-title">Material envasado · ${p?.nom}</span>
       <div style="display:flex;align-items:center;gap:10px">${invToggle()}<button class="btn btn-gh btn-sm" onclick="expInv()">CSV</button></div>
     </div>
-    <div class="ox"><table><thead><tr><th class="tl">Material</th><th>Inicial</th><th class="hteal">En tránsito</th><th class="hl">Disponible</th>${simHead}<th>Consumido</th><th class="tl">Uso</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
+    <div class="ox"><table><thead><tr><th class="tl">Material</th><th>Inicial</th><th class="hteal">Solicitados</th><th class="hl">Disponible</th>${simHead}<th>Consumido</th><th class="tl">Uso</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
     <div class="card"><div class="card-h">
       <span class="card-title" style="color:#0F6E56">Tequila a granel · ${p?.nom}</span>
       <div style="display:flex;gap:16px;font-size:11px">
@@ -1112,6 +1155,34 @@ async function eliminarFact(id){
     if(!res.ok)throw new Error();
     DB.facturas=DB.facturas.filter(x=>String(x.id)!==String(id));
     toast(`✓ Factura ${f.num} eliminada`);render();
+  }catch(e){toast('Error al eliminar',true);}
+}
+
+async function regSolicitud(){
+  const qty=parseInt(UI.sol.cant);
+  if(!qty||qty<=0){toast('Ingresa una cantidad válida',true);return;}
+  if(!UI.sol.prov.trim()){toast('Ingresa el nombre del proveedor',true);return;}
+  const entry={id:Date.now(),plant:UI.plant,mat:UI.sol.mat,cant:qty,
+    proveedor:UI.sol.prov.trim(),fechaPedido:UI.sol.fecha,
+    ...(isEtiq(UI.sol.mat)?{nom:UI.sol.nom}:{})};
+  try{
+    const res=await api('/api/transito',{method:'POST',body:JSON.stringify(entry)});
+    if(!res.ok)throw new Error();
+    DB.transito.push(entry);
+    const m=MAT_IDX[UI.sol.mat];
+    toast(`✓ Pedido registrado: ${fmt(qty)} ${m?.nom} · ${UI.sol.prov}`);
+    UI.sol={plant:UI.plant,mat:UI.sol.mat,cant:'',prov:'',fecha:hoy(),nom:UI.sol.nom};
+    render();
+  }catch(e){toast('Error al registrar pedido',true);}
+}
+
+async function eliminarSolicitud(id){
+  if(!confirm('¿Eliminar este pedido?'))return;
+  try{
+    const res=await api(`/api/transito/${id}`,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    DB.transito=DB.transito.filter(t=>String(t.id)!==String(id));
+    toast('✓ Pedido eliminado');render();
   }catch(e){toast('Error al eliminar',true);}
 }
 
