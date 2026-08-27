@@ -248,19 +248,19 @@ const MATS=[
   {id:'separador',  rdv:'RDV20', nom:'Separador',               cat:'Insumos de Envasado'},
   {id:'sep_1750',   rdv:'RDV32', nom:'Separador 1,750 ml',      cat:'Insumos de Envasado'},
   {id:'cinta_b',    rdv:'RDV28', nom:'Cinta Tequila Blanco',    cat:'Insumos de Envasado'},
+  {id:'cinta_r',    rdv:'RDV38', nom:'Cinta Tequila Reposado',  cat:'Insumos de Envasado'},
   {id:'cinta_bf',   rdv:'RDV29', nom:'Cinta Tequila Fuerte',    cat:'Insumos de Envasado'},
   {id:'cinta_transp',rdv:'RDV30',nom:'Cinta Transparente',      cat:'Insumos de Envasado'},
-  // ── EMBALAJE (solo Cuermaro y Embajador)
-  {id:'tarimas_exp',rdv:'RDV33', nom:'Tarimas Exportación',     cat:'Embalaje', soloPlants:['cuermaro','embajador']},
-  {id:'celosil',    rdv:'RDV34', nom:'Celosil de Seguridad',    cat:'Embalaje', soloPlants:['cuermaro','embajador']},
-  {id:'fleje',      rdv:'RDV35', nom:'Fleje',                   cat:'Embalaje', soloPlants:['cuermaro','embajador']},
-  {id:'grapas',     rdv:'RDV36', nom:'Grapas',                  cat:'Embalaje', soloPlants:['cuermaro','embajador']},
-  {id:'emplaye',    rdv:'RDV37', nom:'Emplaye',                  cat:'Embalaje', soloPlants:['cuermaro','embajador']},
+  {id:'tarimas_exp',rdv:'RDV33', nom:'Tarimas Exportación',     cat:'Insumos de Envasado'},
+  {id:'celosil',    rdv:'RDV34', nom:'Celosil de Seguridad',    cat:'Insumos de Envasado'},
+  {id:'fleje',      rdv:'RDV35', nom:'Fleje',                   cat:'Insumos de Envasado'},
+  {id:'grapas',     rdv:'RDV36', nom:'Grapas',                  cat:'Insumos de Envasado'},
+  {id:'emplaye',    rdv:'RDV37', nom:'Emplaye',                  cat:'Insumos de Envasado'},
 ];
 
 const PROD_IDX={},MAT_IDX={},PLANT_IDX={};
-const CATS=['Botellas','Etiquetas','Tapas','Cajas','Códigos de Barras','Insumos de Envasado','Embalaje'];
-const EMBALAJE_PLANTS=['cuermaro','embajador'];
+const CATS=['Botellas','Etiquetas','Tapas','Cajas','Códigos de Barras','Insumos de Envasado'];
+const EMBALAJE_PLANTS=['cuermaro','embajador']; // kept for reference, no longer used as filter
 PRODUCTOS.forEach(p=>PROD_IDX[p.id]=p);
 MATS.forEach(m=>MAT_IDX[m.id]=m);
 PLANTAS.forEach(p=>PLANT_IDX[p.id]=p);
@@ -445,7 +445,6 @@ function rDash(){
     const cajas=secRows('Cajas','#555');
     const cbs=secRows('Códigos de Barras','#555');
     const envs=secRows('Insumos de Envasado','#555');
-    const emb=EMBALAJE_PLANTS.includes(p.id)?secRows('Embalaje','#5B3B9E'):'';
     return `<div class="dash-card">
       <div class="dash-plant-h"><span class="dot" style="background:${p.color}"></span><span style="font-size:12px;font-weight:500">${p.nom}</span></div>
       ${bots?`<div class="cat-sub">Botellas</div>${bots}`:''}
@@ -454,8 +453,7 @@ function rDash(){
       ${cajas?`<div class="cat-sub">Cajas</div>${cajas}`:''}
       ${cbs?`<div class="cat-sub">Códigos de Barras</div>${cbs}`:''}
       ${envs?`<div class="cat-sub">Insumos de Envasado</div>${envs}`:''}
-      ${emb?`<div class="cat-sub">Embalaje</div>${emb}`:''}
-      ${!bots&&!etiqs&&!tapas&&!cajas&&!cbs&&!envs&&!emb?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
+      ${!bots&&!etiqs&&!tapas&&!cajas&&!cbs&&!envs?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
       ${gs.entro>0?`<div style="margin-top:10px;padding-top:8px;border-top:0.5px solid #EEE8DF">
         <div class="dash-row"><span class="dash-lbl" style="color:#0F6E56">Granel ingresado</span><span class="dash-val" style="color:#0F6E56">${fmt(gs.entro)} L</span></div>
         <div class="dash-row"><span class="dash-lbl">Consumido</span><span class="dash-val" style="color:#BA7517">−${fmt(gs.usado)} L</span></div>
