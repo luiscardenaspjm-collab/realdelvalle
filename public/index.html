@@ -384,10 +384,11 @@ function toast(msg,err=false){const t=document.getElementById('toast');t.textCon
 // ═══════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════
+let restrictedPlant=null; // se actualiza en cada render()
 function render(){
   document.getElementById('hdr-date').innerHTML=new Date().toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
   const admin=isAdmin();
-  const restrictedPlant=viewerPlant(); // 'degollado', 'embajador', or null
+  restrictedPlant=viewerPlant(); // actualiza global
   // viewer de planta: forzar planta
   if(restrictedPlant) UI.plant=restrictedPlant;
   // Pestañas visibles por rol
