@@ -33,7 +33,8 @@ th.hl{color:#BA7517;font-weight:500}
 th.hteal{color:#0F6E56;font-weight:500}
 td{padding:6px 12px;border-bottom:0.5px solid #F0EAE0;text-align:right;font-size:12px;vertical-align:middle}
 td:first-child{text-align:left;color:#444}
-tr.cat-row td{background:#F6F2EA;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;padding:5px 12px;pointer-events:none}
+tr.cat-row td{background:#F6F2EA;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;padding:5px 12px}
+tr.cat-row:hover td{background:#EDE8DC}
 tr:last-child td{border-bottom:none}
 tr:not(.cat-row):hover td{background:#FDFCF8}
 .mono{font-family:'SF Mono',Consolas,monospace;font-size:12px}
@@ -281,7 +282,8 @@ let UI={
   traz:{modo:'camion',q:''},
   sim:{prods:[]},
   tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''},
-  editFact:null
+  editFact:null,
+  collapsedCats:new Set()
 };
 
 function hoy(){return new Date().toISOString().split('T')[0];}
@@ -530,7 +532,19 @@ function rInvMaterial(){
         <td><button class="btn btn-gh btn-sm" onclick="detalleFact('${m.id}')">Facturas</button></td></tr>`;
     });
     const nCols=simOn?9:7;
-    if(catHas)rows+=`<tr class="cat-row"><td colspan="${nCols}">${cat}</td></tr>${cr}`;
+    if(catHas){
+      const collapsed=UI.collapsedCats.has(cat+UI.plant);
+      const count=cr.split('<tr>').length-1;
+      rows+=`<tr class="cat-row" onclick="toggleCat('${cat+UI.plant}')" style="cursor:pointer;user-select:none">
+        <td colspan="${nCols}" style="display:flex;align-items:center;justify-content:space-between">
+          <span>${cat}</span>
+          <span style="font-size:10px;color:#bbb;display:flex;align-items:center;gap:6px">
+            ${collapsed?`<span style="color:#BA7517">${count} materiales</span>`:''}
+            <span style="font-size:12px">${collapsed?'▶':'▼'}</span>
+          </span>
+        </td>
+      </tr>${collapsed?'':cr}`;
+    }
   });
   const nCols=simOn?9:7;
   if(!anyMat)rows=`<tr><td colspan="${nCols}" class="empty">Sin ingresos en ${p?.nom}</td></tr>`;
@@ -919,6 +933,7 @@ function rTraslados(){
   </div>`;
 }
 
+function toggleCat(cat){if(UI.collapsedCats.has(cat))UI.collapsedCats.delete(cat);else UI.collapsedCats.add(cat);render();}
 function editarFact(id){UI.editFact=String(id);UI._ef={};render();}
 
 async function guardarFact(id){
