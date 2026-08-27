@@ -470,6 +470,7 @@ function rDash(){
   }).join('');
 
   const hoyStr=new Date().toISOString().split('T')[0];
+  const recSal=DB.salidas.slice(0,6);
   const proxEmb=DB.programados.filter(p=>p.fecha>=hoyStr).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
   const proxRows=proxEmb.length===0?'<tr><td colspan="4" class="empty">Sin embarques programados</td></tr>'
     :proxEmb.map(p=>{const pl=PLANT_IDX[p.plant];const pts=p.productos.map(pr=>`${PROD_IDX[pr.prodId]?.nom||pr.prodId} ×${pr.tarimas}`).join(' · ');return `<tr><td style="font-weight:600;font-size:11px;font-family:'SF Mono',monospace">${p.camion}</td><td>${p.fecha}</td><td style="font-size:11px">${pts}</td><td><span class="badge b-warn">Programado</span></td></tr>`;}).join('');
