@@ -286,6 +286,8 @@ function clearToken(){ sessionStorage.removeItem('rdv_token'); sessionStorage.re
 function getRol(){ return sessionStorage.getItem('rdv_rol')||'viewer'; }
 function isAdmin(){ return getRol()==='admin'; }
 function isViewerDeg(){ return getRol()==='viewer_deg'; }
+function isViewerEmb(){ return getRol()==='viewer_emb'; }
+function viewerPlant(){ if(isViewerDeg())return 'degollado'; if(isViewerEmb())return 'embajador'; return null; }
 
 async function api(path, opts={}){
   const headers = { 'Content-Type':'application/json', ...(opts.headers||{}) };
@@ -374,34 +376,33 @@ function toast(msg,err=false){const t=document.getElementById('toast');t.textCon
 function render(){
   document.getElementById('hdr-date').innerHTML=new Date().toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
   const admin=isAdmin();
-  const viewerDeg=isViewerDeg();
-  // viewer_deg: forzar planta a Degollado siempre
-  if(viewerDeg) UI.plant='degollado';
+  const restrictedPlant=viewerPlant(); // 'degollado', 'embajador', or null
+  // viewer de planta: forzar planta
+  if(restrictedPlant) UI.plant=restrictedPlant;
   // Pestañas visibles por rol
   const editTabs=['ingresos','granel','salidas','traslados'];
-  const degOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad'];
+  const plantOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad'];
   document.querySelectorAll('.mnb').forEach(b=>{
     const t=b.getAttribute('data-tab');
-    if(viewerDeg && degOnlyTabs.includes(t)) b.style.display='none';
-    else if(!admin && !viewerDeg && editTabs.includes(t)) b.style.display='none';
+    if(restrictedPlant && plantOnlyTabs.includes(t)) b.style.display='none';
+    else if(!admin && !restrictedPlant && editTabs.includes(t)) b.style.display='none';
     else b.style.display='';
   });
-  // Si está en pestaña restringida, redirigir
-  if(viewerDeg && degOnlyTabs.includes(UI.tab)) UI.tab='dashboard';
-  if(!admin && !viewerDeg && editTabs.includes(UI.tab)) UI.tab='dashboard';
+  if(restrictedPlant && plantOnlyTabs.includes(UI.tab)) UI.tab='dashboard';
+  if(!admin && !restrictedPlant && editTabs.includes(UI.tab)) UI.tab='dashboard';
   const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados'];
   document.querySelectorAll('.mnb').forEach((b,i)=>b.classList.toggle('act',tabs[i]===UI.tab));
   const ptEl=document.getElementById('ptabs');
   const showPt=['inventario','ingresos'].includes(UI.tab);
   if(showPt){
-    const plantasVisibles=viewerDeg?PLANTAS.filter(p=>p.id==='degollado'):PLANTAS;
+    const plantasVisibles=restrictedPlant?PLANTAS.filter(p=>p.id===restrictedPlant):PLANTAS;
     ptEl.style.display='flex';
     ptEl.innerHTML=plantasVisibles.map(p=>`<button class="ptab ${UI.plant===p.id?'act':''}" style="${UI.plant===p.id?`border-bottom-color:${p.color};color:#1A1A18`:''}" onclick="UI.plant='${p.id}';render()"><span class="dot" style="background:${p.color}"></span>${p.nom}</button>`).join('');
   }
   else ptEl.style.display='none';
   // Indicador de rol
   const roleEl=document.getElementById('role-badge');
-  if(roleEl){const u=sessionStorage.getItem('rdv_user')||'';roleEl.innerHTML=admin?`${u} · <span style="color:#7FCF9F">Administrador</span>`:viewerDeg?`${u} · <span style="color:#639922">Degollado</span>`:`${u} · <span style="color:#E0B968">Solo lectura</span>`;}
+  if(roleEl){const u=sessionStorage.getItem('rdv_user')||'';const p=PLANT_IDX[restrictedPlant];roleEl.innerHTML=admin?`${u} · <span style="color:#7FCF9F">Administrador</span>`:restrictedPlant?`${u} · <span style="color:${p?.color||'#888'}">${p?.nom||restrictedPlant}</span>`:`${u} · <span style="color:#E0B968">Solo lectura</span>`;}
   const app=document.getElementById('app');
   if(UI.tab==='dashboard')       app.innerHTML=rDash();
   else if(UI.tab==='inventario') app.innerHTML=rInv();
@@ -414,7 +415,7 @@ function render(){
 
 // ── DASHBOARD ──────────────────────────────────────────
 function rDash(){
-  const plantasVis=isViewerDeg()?PLANTAS.filter(p=>p.id==='degollado'):PLANTAS;
+  const plantasVis=restrictedPlant?PLANTAS.filter(p=>p.id===restrictedPlant):PLANTAS;
   let tE=0,tU=0,tD=0;
   plantasVis.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
   const metrics=tE>0?`<div class="metric-grid">
