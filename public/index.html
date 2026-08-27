@@ -213,43 +213,54 @@ const PRODUCTOS=[
 // Catálogo numerado RDV01-RDV26 · Orden: Botellas → Etiquetas → Insumos
 const MATS=[
   // ── BOTELLAS
-  {id:'bot_1l',     rdv:'RDV01', nom:'Botella 1 Litro',         cat:'Botellas'},
-  {id:'bot_750',    rdv:'RDV02', nom:'Botella 3/4 Litro',       cat:'Botellas'},
+  {id:'bot_750',    rdv:'RDV02', nom:'Botella 750 ml',          cat:'Botellas'},
+  {id:'bot_1l',     rdv:'RDV01', nom:'Botella 1,000 ml',        cat:'Botellas'},
+  {id:'bot_1750',   rdv:'RDV05', nom:'Botella 1,750 ml',        cat:'Botellas'},
   {id:'bot_700',    rdv:'RDV03', nom:'Botella 700 ml',          cat:'Botellas'},
   {id:'bot_375',    rdv:'RDV04', nom:'Botella 375 ml',          cat:'Botellas'},
-  {id:'bot_1750',   rdv:'RDV05', nom:'Botella 1,750 ml',        cat:'Botellas'},
   // ── ETIQUETAS
-  {id:'etiq_1b',    rdv:'RDV06', nom:'Etiqueta 1L Blanco',      cat:'Etiquetas', hasNom:true},
-  {id:'etiq_34b',   rdv:'RDV07', nom:'Etiqueta 3/4 Blanco',     cat:'Etiquetas', hasNom:true},
-  {id:'etiq_1r',    rdv:'RDV08', nom:'Etiqueta 1L Reposado',    cat:'Etiquetas', hasNom:true},
-  {id:'etiq_34r',   rdv:'RDV09', nom:'Etiqueta 3/4 Reposado',   cat:'Etiquetas', hasNom:true},
-  {id:'etiq_1750b', rdv:'RDV10', nom:'Etiqueta 1750 Blanco',    cat:'Etiquetas', hasNom:true},
-  {id:'etiq_1750r', rdv:'RDV11', nom:'Etiqueta 1750 Reposado',  cat:'Etiquetas', hasNom:true},
-  {id:'etiq_375b',  rdv:'RDV12', nom:'Etiqueta 375 Blanco',     cat:'Etiquetas', hasNom:true},
-  {id:'etiq_bf1',   rdv:'RDV27', nom:'Etiqueta Blanco Fuerte 1L',cat:'Etiquetas', hasNom:true},
-  // ── INSUMOS
-  {id:'tapa_n',     rdv:'RDV13', nom:'Tapa Negra',              cat:'Insumos'},
-  {id:'corcho_750', rdv:'RDV14', nom:'Corcho Madera 750',       cat:'Insumos'},
-  {id:'corcho_700', rdv:'RDV15', nom:'Corcho Madera 700 ml',    cat:'Insumos'},
-  {id:'corcho_1750',rdv:'RDV16', nom:'Corcho Madera 1750',      cat:'Insumos'},
-  {id:'caja_b',     rdv:'RDV17', nom:'Caja Litro',              cat:'Insumos'},
-  {id:'caja_750b',  rdv:'RDV18', nom:'Caja 750 Blanco',         cat:'Insumos'},
-  {id:'caja_750r',  rdv:'RDV19', nom:'Caja 750 Reposado',       cat:'Insumos'},
-  {id:'caja_1750',  rdv:'RDV31', nom:'Caja 1,750 ml',           cat:'Insumos'},
-  {id:'sep_1750',   rdv:'RDV32', nom:'Separador 1,750 ml',      cat:'Insumos'},
-  {id:'separador',  rdv:'RDV20', nom:'Separador',               cat:'Insumos'},
-  {id:'cb_1lb',     rdv:'RDV21', nom:'Cód. Barras 1L Blanco',   cat:'Insumos'},
-  {id:'cb_34b',     rdv:'RDV22', nom:'Cód. Barras 3/4 Blanco',  cat:'Insumos'},
-  {id:'cb_1lr',     rdv:'RDV23', nom:'Cód. Barras 1L Reposado', cat:'Insumos'},
-  {id:'cb_34r',     rdv:'RDV24', nom:'Cód. Barras 3/4 Reposado',cat:'Insumos'},
-  {id:'cb_1750b',   rdv:'RDV25', nom:'Cód. Barras 1750 Blanco', cat:'Insumos'},
-  {id:'cb_gen',     rdv:'RDV26', nom:'Cód. Barras Genérico',    cat:'Insumos'},
-  {id:'cinta_b',    rdv:'RDV28', nom:'Cinta Real del Valle Blanca',       cat:'Insumos'},
-  {id:'cinta_bf',   rdv:'RDV29', nom:'Cinta Real del Valle Blanco Fuerte',cat:'Insumos'},
-  {id:'cinta_transp',rdv:'RDV30',nom:'Cinta Transparente',               cat:'Insumos'}
+  {id:'etiq_34b',   rdv:'RDV07', nom:'Blanco 750 ml',           cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1b',    rdv:'RDV06', nom:'Blanco 1,000 ml',         cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1750b', rdv:'RDV10', nom:'Blanco 1,750 ml',         cat:'Etiquetas', hasNom:true},
+  {id:'etiq_34r',   rdv:'RDV09', nom:'Reposado 750 ml',         cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1r',    rdv:'RDV08', nom:'Reposado 1,000 ml',       cat:'Etiquetas', hasNom:true},
+  {id:'etiq_1750r', rdv:'RDV11', nom:'Reposado 1,750 ml',       cat:'Etiquetas', hasNom:true},
+  {id:'etiq_bf1',   rdv:'RDV27', nom:'Blanco Fuerte 1,000 ml',  cat:'Etiquetas', hasNom:true},
+  {id:'etiq_375b',  rdv:'RDV12', nom:'Blanco 375 ml',           cat:'Etiquetas', hasNom:true},
+  // ── TAPAS
+  {id:'corcho_750', rdv:'RDV14', nom:'Corcho 750 ml',           cat:'Tapas'},
+  {id:'corcho_1750',rdv:'RDV16', nom:'Corcho 1,750 ml',         cat:'Tapas'},
+  {id:'tapa_n',     rdv:'RDV13', nom:'Tapa Negra 1,000 ml',     cat:'Tapas'},
+  {id:'corcho_700', rdv:'RDV15', nom:'Corcho 700 ml',           cat:'Tapas'},
+  // ── CAJAS
+  {id:'caja_750b',  rdv:'RDV18', nom:'Caja Azul Blanco 750 ml', cat:'Cajas'},
+  {id:'caja_750r',  rdv:'RDV19', nom:'Caja Café Reposado 750 ml',cat:'Cajas'},
+  {id:'caja_b',     rdv:'RDV17', nom:'Caja Blanca 1,000 ml',    cat:'Cajas'},
+  {id:'caja_1750',  rdv:'RDV31', nom:'Caja 1,750 ml',           cat:'Cajas'},
+  // ── CÓDIGOS DE BARRAS
+  {id:'cb_34b',     rdv:'RDV22', nom:'Código Blanco 750 ml',    cat:'Códigos de Barras'},
+  {id:'cb_1lb',     rdv:'RDV21', nom:'Código Blanco 1,000 ml',  cat:'Códigos de Barras'},
+  {id:'cb_1750b',   rdv:'RDV25', nom:'Código Blanco 1,750 ml',  cat:'Códigos de Barras'},
+  {id:'cb_34r',     rdv:'RDV24', nom:'Código Reposado 750 ml',  cat:'Códigos de Barras'},
+  {id:'cb_1lr',     rdv:'RDV23', nom:'Código Reposado 1,000 ml',cat:'Códigos de Barras'},
+  {id:'cb_gen',     rdv:'RDV26', nom:'Código Genérico',         cat:'Códigos de Barras'},
+  // ── INSUMOS DE ENVASADO
+  {id:'separador',  rdv:'RDV20', nom:'Separador',               cat:'Insumos de Envasado'},
+  {id:'sep_1750',   rdv:'RDV32', nom:'Separador 1,750 ml',      cat:'Insumos de Envasado'},
+  {id:'cinta_b',    rdv:'RDV28', nom:'Cinta Tequila Blanco',    cat:'Insumos de Envasado'},
+  {id:'cinta_bf',   rdv:'RDV29', nom:'Cinta Tequila Fuerte',    cat:'Insumos de Envasado'},
+  {id:'cinta_transp',rdv:'RDV30',nom:'Cinta Transparente',      cat:'Insumos de Envasado'},
+  // ── EMBALAJE (solo Cuermaro y Embajador)
+  {id:'tarimas_exp',rdv:'RDV33', nom:'Tarimas Exportación',     cat:'Embalaje', soloPlants:['cuermaro','embajador']},
+  {id:'celosil',    rdv:'RDV34', nom:'Celosil de Seguridad',    cat:'Embalaje', soloPlants:['cuermaro','embajador']},
+  {id:'fleje',      rdv:'RDV35', nom:'Fleje',                   cat:'Embalaje', soloPlants:['cuermaro','embajador']},
+  {id:'grapas',     rdv:'RDV36', nom:'Grapas',                  cat:'Embalaje', soloPlants:['cuermaro','embajador']},
+  {id:'emplaye',    rdv:'RDV37', nom:'Emplaye',                  cat:'Embalaje', soloPlants:['cuermaro','embajador']},
 ];
 
 const PROD_IDX={},MAT_IDX={},PLANT_IDX={};
+const CATS=['Botellas','Etiquetas','Tapas','Cajas','Códigos de Barras','Insumos de Envasado','Embalaje'];
+const EMBALAJE_PLANTS=['cuermaro','embajador'];
 PRODUCTOS.forEach(p=>PROD_IDX[p.id]=p);
 MATS.forEach(m=>MAT_IDX[m.id]=m);
 PLANTAS.forEach(p=>PLANT_IDX[p.id]=p);
@@ -426,16 +437,24 @@ function rDash(){
 
   const pCards=plantasVis.map(p=>{
     const gs=granelStats(p.id);
-    const secRows=(cat,color)=>MATS.filter(m=>m.cat===cat).map(m=>{const s=stockMat(p.id,m.id);const hasRec=DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);const trans=transitoMat(p.id,m.id);if(!hasRec&&trans<=0)return '';const valColor=s<=0?'#B02E1E':color;return `<div class="dash-row"><span class="dash-lbl"><span style="font-family:'SF Mono',monospace;font-size:9px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 4px;margin-right:4px">${m.rdv}</span>${m.nom}</span><span class="dash-val" style="color:${valColor}">${fmt(s)}${trans>0?`<span style="color:#0F6E56;font-size:10px;font-weight:400"> · →${fmt(trans)}</span>`:''}</span></div>`;}).join('');
+    const secRows=(cat,color)=>MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(p.id))).map(m=>{const s=stockMat(p.id,m.id);const hasRec=DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);const trans=transitoMat(p.id,m.id);if(!hasRec&&trans<=0)return '';const valColor=s<=0?'#B02E1E':color;return `<div class="dash-row"><span class="dash-lbl"><span style="font-family:'SF Mono',monospace;font-size:9px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 4px;margin-right:4px">${m.rdv}</span>${m.nom}</span><span class="dash-val" style="color:${valColor}">${fmt(s)}${trans>0?`<span style="color:#0F6E56;font-size:10px;font-weight:400"> · →${fmt(trans)}</span>`:''}</span></div>`;}).join('');
     const bots=secRows('Botellas','#27783A');
     const etiqs=secRows('Etiquetas','#BA7517');
-    const ins=secRows('Insumos','#555');
+    const tapas=secRows('Tapas','#555');
+    const cajas=secRows('Cajas','#555');
+    const cbs=secRows('Códigos de Barras','#555');
+    const envs=secRows('Insumos de Envasado','#555');
+    const emb=EMBALAJE_PLANTS.includes(p.id)?secRows('Embalaje','#5B3B9E'):'';
     return `<div class="dash-card">
       <div class="dash-plant-h"><span class="dot" style="background:${p.color}"></span><span style="font-size:12px;font-weight:500">${p.nom}</span></div>
       ${bots?`<div class="cat-sub">Botellas</div>${bots}`:''}
       ${etiqs?`<div class="cat-sub">Etiquetas</div>${etiqs}`:''}
-      ${ins?`<div class="cat-sub">Insumos</div>${ins}`:''}
-      ${!bots&&!etiqs&&!ins?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
+      ${tapas?`<div class="cat-sub">Tapas</div>${tapas}`:''}
+      ${cajas?`<div class="cat-sub">Cajas</div>${cajas}`:''}
+      ${cbs?`<div class="cat-sub">Códigos de Barras</div>${cbs}`:''}
+      ${envs?`<div class="cat-sub">Insumos de Envasado</div>${envs}`:''}
+      ${emb?`<div class="cat-sub">Embalaje</div>${emb}`:''}
+      ${!bots&&!etiqs&&!tapas&&!cajas&&!cbs&&!envs&&!emb?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
       ${gs.entro>0?`<div style="margin-top:10px;padding-top:8px;border-top:0.5px solid #EEE8DF">
         <div class="dash-row"><span class="dash-lbl" style="color:#0F6E56">Granel ingresado</span><span class="dash-val" style="color:#0F6E56">${fmt(gs.entro)} L</span></div>
         <div class="dash-row"><span class="dash-lbl">Consumido</span><span class="dash-val" style="color:#BA7517">−${fmt(gs.usado)} L</span></div>
@@ -471,9 +490,10 @@ function rInvMaterial(){
   const simNeed=simOn?calcNeeded(UI.sim.prods):{};
   const simLit=simOn?litrosNecesarios(UI.sim.prods):{Blanco:0,Reposado:0};
   let rows='',anyMat=false;
-  ['Botellas','Etiquetas','Insumos'].forEach(cat=>{
+  const catsVisibles=CATS.filter(cat=>cat!=='Embalaje'||EMBALAJE_PLANTS.includes(UI.plant));
+  catsVisibles.forEach(cat=>{
     let cr='',catHas=false;
-    MATS.filter(m=>m.cat===cat).forEach(m=>{
+    MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(UI.plant))).forEach(m=>{
       const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);
       const trans=transitoMat(UI.plant,m.id);
       if(!facts.length&&trans<=0)return;
@@ -1065,7 +1085,7 @@ async function confirmar(){
   }catch(e){toast('Error al guardar la salida',true);}
 }
 function detalleFact(matId){const m=MAT_IDX[matId];const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===matId);if(!facts.length){alert(`Sin facturas de ${m?.rdv} ${m?.nom}`);return;}let msg=`${m?.rdv} · ${m?.nom} · ${PLANT_IDX[UI.plant]?.nom}\n${'─'.repeat(44)}\n`;facts.forEach(f=>{const pct=f.cantIni>0?Math.round((1-f.cantRest/f.cantIni)*100):0;msg+=`\nFactura: ${f.num}${f.nom?' [NOM '+f.nom+']':''}\nProveedor: ${f.prov||'N/A'}\nFecha: ${f.fecha}\nInicial: ${fmt(f.cantIni)} | Disponible: ${fmt(f.cantRest)} | ${pct}% consumido\n`;});alert(msg);}
-function expInv(){const p=PLANT_IDX[UI.plant];const rows=[['Código','Categoría','Material','Inicial','Consumido','Disponible']];['Botellas','Etiquetas','Insumos'].forEach(cat=>{MATS.filter(m=>m.cat===cat).forEach(m=>{const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);if(!facts.length)return;const ini=facts.reduce((s,f)=>s+f.cantIni,0),rest=facts.reduce((s,f)=>s+f.cantRest,0);rows.push([m.rdv,cat,m.nom,ini,ini-rest,rest]);});});const csv='\uFEFF'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`RDV_${p?.nom}_${hoy()}.csv`;a.click();}
+function expInv(){const p=PLANT_IDX[UI.plant];const rows=[['Código','Categoría','Material','Inicial','Consumido','Disponible']];CATS.filter(cat=>cat!=='Embalaje'||EMBALAJE_PLANTS.includes(UI.plant)).forEach(cat=>{MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(UI.plant))).forEach(m=>{const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);if(!facts.length)return;const ini=facts.reduce((s,f)=>s+f.cantIni,0),rest=facts.reduce((s,f)=>s+f.cantRest,0);rows.push([m.rdv,cat,m.nom,ini,ini-rest,rest]);});});const csv='\uFEFF'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`RDV_${p?.nom}_${hoy()}.csv`;a.click();}
 
 // ── INIT ──
 async function boot(){
