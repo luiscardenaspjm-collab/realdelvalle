@@ -435,55 +435,161 @@ function render(){
 // ── DASHBOARD ──────────────────────────────────────────
 function rDash(){
   const plantasVis=restrictedPlant?PLANTAS.filter(p=>p.id===restrictedPlant):PLANTAS;
+  const hoyStr=new Date().toISOString().split('T')[0];
+
+  // ── KPIs calculados de datos reales ──
+  const totalSalidas=DB.salidas.length;
+  const totalTarimas=DB.salidas.reduce((s,sal)=>s+(sal.productos||[]).reduce((a,p)=>a+p.tarimas,0),0);
   let tE=0,tU=0,tD=0;
   plantasVis.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
-  const metrics=tE>0?`<div class="metric-grid">
-    <div class="metric-card"><div class="metric-label">Granel ingresado total</div><div class="metric-val" style="color:#0F6E56">${fmt(tE)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">todas las plantas</div></div>
-    <div class="metric-card"><div class="metric-label">Granel consumido</div><div class="metric-val" style="color:#BA7517">${fmt(tU)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en salidas de camión</div></div>
-    <div class="metric-card"><div class="metric-label">Granel disponible</div><div class="metric-val" style="color:${tD<=0?'#B02E1E':'#1A1A18'}">${fmt(tD)}<span style="font-size:13px;font-weight:400"> L</span></div><div class="metric-sub">en bodega</div></div>
+
+  // Materiales críticos (en cero o casi)
+  const criticos=[];
+  plantasVis.forEach(pl=>{
+    MATS.forEach(m=>{
+      const facts=DB.facturas.filter(f=>f.plant===pl.id&&f.mat===m.id);
+      if(!facts.length)return;
+      const rest=facts.reduce((s,f)=>s+f.cantRest,0);
+      const ini=facts.reduce((s,f)=>s+f.cantIni,0);
+      if(rest<=0) criticos.push({mat:m,plant:pl,rest,ini,nivel:'danger'});
+      else if(ini>0&&rest/ini<0.1) criticos.push({mat:m,plant:pl,rest,ini,nivel:'warn'});
+    });
+  });
+  const nAgotados=criticos.filter(c=>c.nivel==='danger').length;
+
+  // Tarimas por presentación (de salidas reales)
+  const tarPorProd={};
+  DB.salidas.forEach(sal=>{ (sal.productos||[]).forEach(p=>{ tarPorProd[p.prodId]=(tarPorProd[p.prodId]||0)+p.tarimas; }); });
+
+  // Próximos programados
+  const proxEmb=DB.programados.filter(p=>p.fecha>=hoyStr).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
+  const recSal=DB.salidas.slice(0,5);
+
+  // En tránsito
+  const nTransito=DB.transito.length;
+
+  // ── KPI STRIP ──
+  const kpiStrip=`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#E8E2D8;border-radius:10px;overflow:hidden;border:0.5px solid #E8E2D8;margin-bottom:20px">
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Camiones salidos</div>
+      <div style="font-size:24px;font-weight:700;color:#27783A">${totalSalidas}</div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">total registrados</div>
+    </div>
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Tarimas despachadas</div>
+      <div style="font-size:24px;font-weight:700;color:#1A1A18">${fmt(totalTarimas)}</div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">todas las salidas</div>
+    </div>
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Granel disponible</div>
+      <div style="font-size:24px;font-weight:700;color:${tD<=0?'#B02E1E':'#27783A'}">${fmt(tD)}<span style="font-size:13px;font-weight:400;color:#bbb"> L</span></div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">todas las bodegas</div>
+    </div>
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Mat. agotados</div>
+      <div style="font-size:24px;font-weight:700;color:${nAgotados>0?'#B02E1E':'#27783A'}">${nAgotados}</div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">requieren atención</div>
+    </div>
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">En tránsito</div>
+      <div style="font-size:24px;font-weight:700;color:${nTransito>0?'#0F6E56':'#bbb'}">${nTransito}</div>
+      <div style="font-size:10px;color:#bbb;margin-top:4px">materiales pendientes</div>
+    </div>
+    <div style="background:#fff;padding:14px 18px">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Próximo programado</div>
+      ${proxEmb.length?`<div style="font-size:18px;font-weight:700;color:#BA7517;margin-top:2px">${proxEmb[0].camion}</div><div style="font-size:10px;color:#bbb;margin-top:4px">${proxEmb[0].fecha}</div>`:`<div style="font-size:14px;font-weight:500;color:#bbb;margin-top:6px">Sin programar</div>`}
+    </div>
+  </div>`;
+
+  // ── TARIMAS POR PRESENTACIÓN ──
+  const prods=[
+    {id:'blanco_750',tipo:'B',color:'#639922'},
+    {id:'blanco_1000',tipo:'B',color:'#639922'},
+    {id:'blanco_1750',tipo:'B',color:'#639922'},
+    {id:'blanco_fuerte_1000',tipo:'B',color:'#639922'},
+    {id:'repo_750',tipo:'R',color:'#BA7517'},
+    {id:'repo_1000',tipo:'R',color:'#BA7517'},
+    {id:'repo_1750',tipo:'R',color:'#BA7517'},
+  ].filter(pr=>tarPorProd[pr.id]>0);
+
+  const tarStrip=prods.length?`<div style="display:grid;grid-template-columns:repeat(${Math.min(prods.length,7)},1fr);gap:1px;background:#E8E2D8;border-radius:10px;overflow:hidden;border:0.5px solid #E8E2D8;margin-bottom:20px">
+    ${prods.map(pr=>{const pd=PROD_IDX[pr.id];const tar=tarPorProd[pr.id]||0;const bots=tar*(pr.id.includes('1750')?312:528);return `<div style="background:#fff;padding:12px 16px;border-top:2px solid ${pr.color}">
+      <div style="font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.06em">${pr.tipo==='B'?'Blanco':'Reposado'}</div>
+      <div style="font-size:11px;font-weight:600;color:#1A1A18;margin:3px 0">${pd?.nom?.replace('Tequila Blanco ','').replace('Tequila Reposado ','').replace('Tequila ','')}</div>
+      <div style="font-size:20px;font-weight:700;color:#1A1A18">${tar} <span style="font-size:11px;font-weight:400;color:#bbb">tar.</span></div>
+      <div style="font-size:10px;color:#aaa">${fmt(bots)} botellas</div>
+    </div>`;}).join('')}
   </div>`:'';
 
-  const pCards=plantasVis.map(p=>{
-    const gs=granelStats(p.id);
-    const secRows=(cat,color)=>MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(p.id))).map(m=>{const s=stockMat(p.id,m.id);const hasRec=DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);const trans=transitoMat(p.id,m.id);if(!hasRec&&trans<=0)return '';const valColor=s<=0?'#B02E1E':color;return `<div class="dash-row"><span class="dash-lbl"><span style="font-family:'SF Mono',monospace;font-size:9px;color:#BA7517;background:#FEF3E2;border:0.5px solid #F0D090;border-radius:3px;padding:0 4px;margin-right:4px">${m.rdv}</span>${m.nom}</span><span class="dash-val" style="color:${valColor}">${fmt(s)}${trans>0?`<span style="color:#0F6E56;font-size:10px;font-weight:400"> · →${fmt(trans)}</span>`:''}</span></div>`;}).join('');
-    const bots=secRows('Botellas','#27783A');
-    const etiqs=secRows('Etiquetas','#BA7517');
-    const tapas=secRows('Tapas','#555');
-    const cajas=secRows('Cajas','#555');
-    const cbs=secRows('Códigos de Barras','#555');
-    const envs=secRows('Insumos de Envasado','#555');
-    return `<div class="dash-card">
-      <div class="dash-plant-h"><span class="dot" style="background:${p.color}"></span><span style="font-size:12px;font-weight:500">${p.nom}</span></div>
-      ${bots?`<div class="cat-sub">Botellas</div>${bots}`:''}
-      ${etiqs?`<div class="cat-sub">Etiquetas</div>${etiqs}`:''}
-      ${tapas?`<div class="cat-sub">Tapas</div>${tapas}`:''}
-      ${cajas?`<div class="cat-sub">Cajas</div>${cajas}`:''}
-      ${cbs?`<div class="cat-sub">Códigos de Barras</div>${cbs}`:''}
-      ${envs?`<div class="cat-sub">Insumos de Envasado</div>${envs}`:''}
-      ${!bots&&!etiqs&&!tapas&&!cajas&&!cbs&&!envs?'<div style="font-size:11px;color:#ccc;padding:4px 0">Sin stock</div>':''}
-      ${gs.entro>0?`<div style="margin-top:10px;padding-top:8px;border-top:0.5px solid #EEE8DF">
-        <div class="dash-row"><span class="dash-lbl" style="color:#0F6E56">Granel ingresado</span><span class="dash-val" style="color:#0F6E56">${fmt(gs.entro)} L</span></div>
-        <div class="dash-row"><span class="dash-lbl">Consumido</span><span class="dash-val" style="color:#BA7517">−${fmt(gs.usado)} L</span></div>
-        <div class="dash-row"><span class="dash-lbl">Disponible</span><span class="dash-val ${gs.disp<=0?'neg':'pos'}">${fmt(gs.disp)} L</span></div>
-      </div>`:''}
+  // ── MATERIALES CRÍTICOS ──
+  const critRows=criticos.slice(0,8).map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #F8F5F0">
+    <div><div style="font-size:12px;font-weight:500">${c.mat.nom}</div><div style="font-size:10px;color:#bbb;margin-top:1px">${c.plant.nom}</div></div>
+    <span style="font-size:12px;font-weight:700;font-family:'SF Mono',monospace;color:${c.nivel==='danger'?'#B02E1E':'#BA7517'}">${fmt(c.rest)} uds${c.nivel==='danger'?' ⚠':''}</span>
+  </div>`).join('');
+
+  // ── BODEGAS ──
+  const bodRows=plantasVis.map(p=>{
+    const mats=MATS.filter(m=>DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id));
+    const enCero=mats.filter(m=>stockMat(p.id,m.id)<=0).length;
+    const total=mats.length;
+    const pct=total>0?Math.round((total-enCero)/total*100):0;
+    const alertas=criticos.filter(c=>c.plant.id===p.id&&c.nivel==='danger').length;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid #F8F5F0">
+      <div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
+      <div style="font-size:12px;font-weight:500;flex:1">${p.nom}</div>
+      <div style="width:60px;height:4px;background:#EEE8DF;border-radius:2px"><div style="width:${pct}%;height:4px;border-radius:2px;background:${p.color}"></div></div>
+      ${alertas>0?`<span style="background:#FDECEA;color:#B02E1E;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">${alertas} alertas</span>`:`<span style="background:#E8F5EC;color:#27783A;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">OK</span>`}
     </div>`;
   }).join('');
 
-  const hoyStr=new Date().toISOString().split('T')[0];
-  const recSal=DB.salidas.slice(0,6);
-  const proxEmb=DB.programados.filter(p=>p.fecha>=hoyStr).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
-  const proxRows=proxEmb.length===0?'<tr><td colspan="4" class="empty">Sin embarques programados</td></tr>'
-    :proxEmb.map(p=>{const pl=PLANT_IDX[p.plant];const pts=p.productos.map(pr=>`${PROD_IDX[pr.prodId]?.nom||pr.prodId} ×${pr.tarimas}`).join(' · ');return `<tr><td style="font-weight:600;font-size:11px;font-family:'SF Mono',monospace">${p.camion}</td><td>${p.fecha}</td><td style="font-size:11px">${pts}</td><td><span class="badge b-warn">Programado</span></td></tr>`;}).join('');
-  const sRows=recSal.length===0?'<tr><td colspan="6" class="empty">Sin salidas registradas</td></tr>'
-    :recSal.map(s=>{const pl=PLANT_IDX[s.plant];const pts=s.productos.map(p=>`${PROD_IDX[p.prodId]?.nom} ×${p.tarimas}`).join(' / ');const fns=[...new Set(s.consumos.map(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return f?.num||'?'}))];const lns=s.consumosGranel?[...new Set(s.consumosGranel.map(c=>c.lote))]:[];return `<tr><td>${s.fecha}</td><td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:4px"></span>${pl?.nom}</td><td style="font-weight:500">${s.camion}</td><td style="font-size:11px">${pts}</td><td style="font-size:10px;color:#aaa">${fns.join(', ')}</td><td style="font-size:10px;color:#0F6E56">${lns.join(', ')||'—'}</td></tr>`;}).join('');
+  // ── SALIDAS ──
+  const sRows=recSal.length===0?`<tr><td colspan="4" class="empty">Sin salidas registradas</td></tr>`
+    :recSal.map(s=>{const pl=PLANT_IDX[s.plant];const pts=s.productos.map(p=>`${PROD_IDX[p.prodId]?.nom||p.prodId} ×${p.tarimas}`).join(' · ');return `<tr>
+      <td style="font-weight:600;font-size:11px;font-family:'SF Mono',monospace">${s.camion}</td>
+      <td style="color:#aaa">${s.fecha}</td>
+      <td style="font-size:11px;color:#555">${pts}</td>
+      <td><span style="background:#E8F5EC;color:#27783A;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">✓</span></td>
+    </tr>`;}).join('');
 
-  return `${metrics}<div class="dash-grid">${pCards}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="card"><div class="card-h"><span class="card-title">Últimas salidas de camión</span></div>
-    <div class="ox"><table><thead><tr><th class="tl">Fecha</th><th class="tl">Planta</th><th class="tl">Camión</th><th class="tl">Productos</th><th class="tl">Facturas</th><th class="tl" style="color:#0F6E56">Lotes granel</th></tr></thead><tbody>${sRows}</tbody></table></div></div>
-    <div class="card"><div class="card-h"><span class="card-title">Próximos embarques programados</span><button class="btn btn-gh btn-sm" onclick="goTab('programados')">Ver todos</button></div>
-    <div class="ox"><table><thead><tr><th class="tl">Camión</th><th class="tl">Fecha</th><th class="tl">Productos</th><th></th></tr></thead><tbody>${proxRows}</tbody></table></div></div>
-    </div>`;
+  // ── PROGRAMADOS ──
+  const proxRows=proxEmb.length===0?`<tr><td colspan="3" class="empty">Sin embarques programados</td></tr>`
+    :proxEmb.map(p=>{const pts=p.productos.map(pr=>`${PROD_IDX[pr.prodId]?.nom||pr.prodId} ×${pr.tarimas}`).join(' · ');return `<tr>
+      <td style="font-weight:600;font-size:11px;font-family:'SF Mono',monospace">${p.camion}</td>
+      <td style="color:#aaa">${p.fecha}</td>
+      <td style="font-size:11px;color:#555">${pts}</td>
+    </tr>`;}).join('');
+
+  return `${kpiStrip}${tarStrip}
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><span class="card-title">Materiales críticos</span>${nAgotados>0?`<span style="background:#FDECEA;color:#B02E1E;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px">${nAgotados} agotados</span>`:''}</div>
+        <div class="card-body" style="padding:0 16px">${critRows||`<div style="padding:16px 0;color:#bbb;font-size:12px;text-align:center">✓ Sin materiales críticos</div>`}</div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-title">Historial de salidas</span><span style="font-size:10px;color:#bbb">${totalSalidas} camiones</span></div>
+        <div class="ox"><table><thead><tr><th class="tl">Camión</th><th class="tl">Fecha</th><th class="tl">Productos</th><th></th></tr></thead><tbody>${sRows}</tbody></table></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><span class="card-title">Estado por bodega</span></div>
+        <div class="card-body" style="padding:0 16px">${bodRows}</div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><span class="card-title">Próximos embarques</span><button class="btn btn-gh btn-sm" onclick="goTab('programados')">Ver todos</button></div>
+        <div class="ox"><table><thead><tr><th class="tl">Camión</th><th class="tl">Fecha</th><th class="tl">Productos</th></tr></thead><tbody>${proxRows}</tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="card-title">Tequila Granel</span></div>
+        <div class="card-body" style="padding:0 16px">
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #F8F5F0"><span style="font-size:12px;color:#555">Ingresado</span><span style="font-weight:700;color:#0F6E56;font-family:'SF Mono',monospace">${fmt(tE)} L</span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #F8F5F0"><span style="font-size:12px;color:#555">Consumido</span><span style="font-weight:700;color:#BA7517;font-family:'SF Mono',monospace">${fmt(tU)} L</span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0"><span style="font-size:12px;color:#555">Disponible</span><span style="font-weight:700;color:${tD<=0?'#B02E1E':'#27783A'};font-family:'SF Mono',monospace">${fmt(tD)} L</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ── INVENTARIO ─────────────────────────────────────────
