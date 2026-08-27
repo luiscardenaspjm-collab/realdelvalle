@@ -263,6 +263,16 @@ const MATS=[
 const PROD_IDX={},MAT_IDX={},PLANT_IDX={};
 const CATS=['Botellas','Etiquetas','Tapas','Cajas','Códigos de Barras','Insumos de Envasado'];
 const EMBALAJE_PLANTS=['cuermaro','embajador']; // kept for reference, no longer used as filter
+
+// Materiales que aplican para alertas críticas por planta
+// Si una planta no está aquí, se usan todos sus materiales con stock real
+const PROD_MATS_PLANTA={
+  cuermaro: ['bot_1l','etiq_1b','tapa_n','caja_b','separador','cb_1lb'],
+  embajador: ['bot_1l','etiq_1b','tapa_n','caja_b','separador','cb_1lb'],
+};
+
+// Plantas en stand by — no generan alertas en dashboard
+const PLANTAS_STANDBY=['arandas'];
 PRODUCTOS.forEach(p=>PROD_IDX[p.id]=p);
 MATS.forEach(m=>MAT_IDX[m.id]=m);
 PLANTAS.forEach(p=>PLANT_IDX[p.id]=p);
@@ -443,16 +453,22 @@ function rDash(){
   let tE=0,tU=0,tD=0;
   plantasVis.forEach(p=>{const s=granelStats(p.id);tE+=s.entro;tU+=s.usado;tD+=s.disp;});
 
-  // Materiales críticos (en cero o casi)
+  // Materiales críticos — solo los que tienen ingreso real y son relevantes para la producción de esa planta
   const criticos=[];
   plantasVis.forEach(pl=>{
+    if(PLANTAS_STANDBY.includes(pl.id)) return; // stand by: sin alertas
+    const matsRelevantes=PROD_MATS_PLANTA[pl.id]||null; // null = todos
     MATS.forEach(m=>{
+      // Si la planta tiene filtro de producción, solo evaluar esos materiales
+      if(matsRelevantes && !matsRelevantes.includes(m.id)) return;
       const facts=DB.facturas.filter(f=>f.plant===pl.id&&f.mat===m.id);
       if(!facts.length)return;
-      const rest=facts.reduce((s,f)=>s+f.cantRest,0);
       const ini=facts.reduce((s,f)=>s+f.cantIni,0);
+      const rest=facts.reduce((s,f)=>s+f.cantRest,0);
+      // Ignorar registros base en cero
+      if(ini===0)return;
       if(rest<=0) criticos.push({mat:m,plant:pl,rest,ini,nivel:'danger'});
-      else if(ini>0&&rest/ini<0.1) criticos.push({mat:m,plant:pl,rest,ini,nivel:'warn'});
+      else if(rest/ini<0.1) criticos.push({mat:m,plant:pl,rest,ini,nivel:'warn'});
     });
   });
   const nAgotados=criticos.filter(c=>c.nivel==='danger').length;
@@ -529,8 +545,13 @@ function rDash(){
 
   // ── BODEGAS ──
   const bodRows=plantasVis.map(p=>{
-    const mats=MATS.filter(m=>DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id));
-    const enCero=mats.filter(m=>stockMat(p.id,m.id)<=0).length;
+    const enStandBy=PLANTAS_STANDBY.includes(p.id);
+    const matsRelevantes=enStandBy?null:(PROD_MATS_PLANTA[p.id]||null);
+    const mats=MATS.filter(m=>{
+      if(matsRelevantes&&!matsRelevantes.includes(m.id))return false;
+      return DB.facturas.some(f=>f.plant===p.id&&f.mat===m.id);
+    });
+    const enCero=enStandBy?0:mats.filter(m=>stockMat(p.id,m.id)<=0).length;
     const total=mats.length;
     const pct=total>0?Math.round((total-enCero)/total*100):0;
     const alertas=criticos.filter(c=>c.plant.id===p.id&&c.nivel==='danger').length;
@@ -538,7 +559,7 @@ function rDash(){
       <div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
       <div style="font-size:12px;font-weight:500;flex:1">${p.nom}</div>
       <div style="width:60px;height:4px;background:#EEE8DF;border-radius:2px"><div style="width:${pct}%;height:4px;border-radius:2px;background:${p.color}"></div></div>
-      ${alertas>0?`<span style="background:#FDECEA;color:#B02E1E;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">${alertas} alertas</span>`:`<span style="background:#E8F5EC;color:#27783A;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">OK</span>`}
+      ${enStandBy?`<span style="background:#F0EBE0;color:#888;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">Stand by</span>`:alertas>0?`<span style="background:#FDECEA;color:#B02E1E;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">${alertas} alertas</span>`:`<span style="background:#E8F5EC;color:#27783A;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">OK</span>`}
     </div>`;
   }).join('');
 
