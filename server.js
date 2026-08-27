@@ -64,12 +64,13 @@ app.post('/api/login', async (req, res) => {
 // ── OBTENER TODA LA DATA ───────────────────────────────
 app.get('/api/data', auth, async (req, res) => {
   try {
-    const [f, g, s, t, tr] = await Promise.all([
+    const [f, g, s, t, tr, pr] = await Promise.all([
       db.execute('SELECT * FROM facturas'),
       db.execute('SELECT * FROM granel'),
       db.execute('SELECT * FROM salidas ORDER BY id DESC'),
       db.execute('SELECT * FROM transito'),
       db.execute('SELECT * FROM traslados ORDER BY id DESC'),
+      db.execute('SELECT * FROM programados ORDER BY fecha ASC'),
     ]);
     const facturas = f.rows.map(r => ({
       id: r.id, num: r.num, prov: r.prov, plant: r.plant, mat: r.mat,
@@ -96,7 +97,10 @@ app.get('/api/data', auth, async (req, res) => {
       id: r.id, origen: r.origen, destino: r.destino, mat: r.mat,
       cant: r.cant, fecha: r.fecha, nota: r.nota, usuario: r.usuario,
     }));
-    // viewer_deg solo ve datos de Degollado
+    const programados = pr.rows.map(r => ({
+      id: r.id, camion: r.camion, plant: r.plant, fecha: r.fecha,
+      productos: JSON.parse(r.productos || '[]'), notas: r.notas,
+    }));
     const rol = req.user.rol;
     const plantFilter = rol === 'viewer_deg' ? 'degollado' : rol === 'viewer_emb' ? 'embajador' : null;
     if (plantFilter) {
@@ -106,9 +110,10 @@ app.get('/api/data', auth, async (req, res) => {
         salidas: salidas.filter(s => s.plant === plantFilter),
         transito: transito.filter(t => t.plant === plantFilter),
         traslados: traslados.filter(t => t.origen === plantFilter || t.destino === plantFilter),
+        programados: programados.filter(p => p.plant === plantFilter),
       });
     }
-    res.json({ facturas, granel, salidas, transito, traslados });
+    res.json({ facturas, granel, salidas, transito, traslados, programados });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error leyendo datos' });
@@ -188,6 +193,35 @@ app.post('/api/llegada', auth, adminOnly, async (req, res) => {
     console.error(e);
     res.status(500).json({ error: 'Error registrando llegada' });
   }
+});
+
+// ── EMBARQUES PROGRAMADOS ──────────────────────────────
+app.get('/api/programados', auth, async (req, res) => {
+  try {
+    const r = await db.execute('SELECT * FROM programados ORDER BY fecha ASC');
+    res.json(r.rows.map(row => ({
+      id: row.id, camion: row.camion, plant: row.plant, fecha: row.fecha,
+      productos: JSON.parse(row.productos || '[]'), notas: row.notas,
+    })));
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.post('/api/programados', auth, adminOnly, async (req, res) => {
+  try {
+    const { id, camion, plant, fecha, productos, notas } = req.body;
+    await db.execute({
+      sql: `INSERT INTO programados (id,camion,plant,fecha,productos,notas) VALUES (?,?,?,?,?,?)`,
+      args: [String(id||Date.now()), camion, plant, fecha, JSON.stringify(productos||[]), notas||null],
+    });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.delete('/api/programados/:id', auth, adminOnly, async (req, res) => {
+  try {
+    await db.execute({ sql: 'DELETE FROM programados WHERE id=?', args: [req.params.id] });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Error' }); }
 });
 
 // ── REGISTRAR TRASLADO ─────────────────────────────────
