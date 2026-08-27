@@ -98,13 +98,14 @@ app.get('/api/data', auth, async (req, res) => {
     }));
     // viewer_deg solo ve datos de Degollado
     const rol = req.user.rol;
-    if (rol === 'viewer_deg') {
+    const plantFilter = rol === 'viewer_deg' ? 'degollado' : rol === 'viewer_emb' ? 'embajador' : null;
+    if (plantFilter) {
       return res.json({
-        facturas: facturas.filter(f => f.plant === 'degollado'),
-        granel: granel.filter(g => g.planta === 'degollado'),
-        salidas: salidas.filter(s => s.plant === 'degollado'),
-        transito: transito.filter(t => t.plant === 'degollado'),
-        traslados: traslados.filter(t => t.origen === 'degollado' || t.destino === 'degollado'),
+        facturas: facturas.filter(f => f.plant === plantFilter),
+        granel: granel.filter(g => g.planta === plantFilter),
+        salidas: salidas.filter(s => s.plant === plantFilter),
+        transito: transito.filter(t => t.plant === plantFilter),
+        traslados: traslados.filter(t => t.origen === plantFilter || t.destino === plantFilter),
       });
     }
     res.json({ facturas, granel, salidas, transito, traslados });
