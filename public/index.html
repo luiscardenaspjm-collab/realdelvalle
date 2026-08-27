@@ -295,6 +295,8 @@ let UI={
   tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''},
   editFact:null,
   collapsedCats:new Set(),
+  collapsedSol:false,
+  collapsedSim:false,
   prog:{camion:'',plant:'degollado',fecha:new Date().toISOString().split('T')[0],prods:[],notas:''},
   editProg:null,
   sol:{plant:'degollado',mat:'bot_1l',cant:'',prov:'',fecha:new Date().toISOString().split('T')[0],nom:'DEG'}
@@ -709,10 +711,14 @@ function rInvMaterial(){
   const simItems=UI.sim.prods.map((sp,i)=>{const pr=PROD_IDX[sp.prodId];const lit=(LITROS_TARIMA[sp.prodId]||0)*sp.tarimas;return `<span class="sim-chip"><strong>${pr?.nom}</strong> · ${sp.tarimas} tar. · <span style="color:#0F6E56">${fmt(lit)} L</span> <span onclick="quitarSimProd(${i})" style="cursor:pointer;color:#B02E1E;margin-left:4px;font-weight:700">✕</span></span>`;}).join('');
   const simGranel=simOn?`<div style="font-size:11px;color:#0F6E56;margin-top:8px">Granel simulado: Blanco ${fmt(simLit.Blanco||0)} L · Reposado ${fmt(simLit.Reposado||0)} L</div>`:'';
   const simPanel=`<div class="card" style="border-color:#F0D090">
-    <div class="card-h" style="background:#FFF8F0"><span class="card-title" style="color:#BA7517">🧮 Simulador de movimientos · ${p?.nom}</span>
-      ${simOn?`<button class="btn btn-gh btn-sm" onclick="limpiarSim()">Limpiar simulación</button>`:''}
+    <div class="card-h" style="background:#FFF8F0;cursor:pointer;user-select:none" onclick="UI.collapsedSim=!UI.collapsedSim;render()">
+      <span class="card-title" style="color:#BA7517">🧮 Simulador de movimientos · ${p?.nom}</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${simOn?`<button class="btn btn-gh btn-sm" onclick="event.stopPropagation();limpiarSim()">Limpiar</button>`:''}
+        <span style="font-size:12px;color:#bbb">${UI.collapsedSim?'▶':'▼'}</span>
+      </div>
     </div>
-    <div class="card-body">
+    ${UI.collapsedSim?'':`<div class="card-body">
       <div style="font-size:11px;color:#888;margin-bottom:10px">Agrega tarimas de un producto para ver cuánto material se usaría y con cuánto quedarías — sin afectar el inventario real.</div>
       <div class="prod-add-row">
         <div class="fg"><label>Producto</label><select id="simProd">${prOpts}</select></div>
@@ -720,7 +726,7 @@ function rInvMaterial(){
         <div class="fg"><label>&nbsp;</label><button class="btn btn-pr" onclick="addSimProd()">+ Simular</button></div>
       </div>
       ${simOn?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${simItems}</div>${simGranel}`:''}
-    </div>
+    </div>`}
   </div>`;
 
   const simHead=simOn?`<th class="tl" style="color:#BA7517;background:#FFF8F0">Simula uso</th><th class="tl" style="color:#BA7517;background:#FFF8F0">Quedaría</th>`:'';
@@ -730,11 +736,14 @@ function rInvMaterial(){
   const matOpts=MATS.map(m=>`<option value="${m.id}"${UI.sol.mat===m.id?' selected':''}>${m.rdv} · ${m.nom}</option>`).join('');
   const showNomSol=isEtiq(UI.sol.mat);
   const solPanel=`<div class="card" style="border-color:#9FE1CB;margin-bottom:16px">
-    <div class="card-h" style="background:#F3FBF5">
+    <div class="card-h" style="background:#F3FBF5;cursor:pointer;user-select:none" onclick="UI.collapsedSol=!UI.collapsedSol;render()">
       <span class="card-title" style="color:#0F6E56">📦 Materiales Solicitados · ${p?.nom}</span>
-      <span style="font-size:11px;color:#bbb">${solList.length} pendientes</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:#bbb">${solList.length} pendientes</span>
+        <span style="font-size:12px;color:#bbb">${UI.collapsedSol?'▶':'▼'}</span>
+      </div>
     </div>
-    <div class="card-body" style="padding:16px">
+    ${UI.collapsedSol?'':`<div class="card-body" style="padding:16px">
       ${isAdmin()?`<div style="font-size:11px;color:#888;margin-bottom:12px">Registra materiales pedidos a proveedores que aún no han llegado.</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-bottom:12px">
         <div class="fg"><label>Material</label><select onchange="UI.sol.mat=this.value;render()">${matOpts}</select></div>
@@ -763,7 +772,7 @@ function rInvMaterial(){
         </td>
       </tr>`;}).join('')}
       </tbody></table></div>`}
-    </div>
+    </div>`}
   </div>`;
 
   return `
