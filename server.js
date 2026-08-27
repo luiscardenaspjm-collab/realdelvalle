@@ -92,6 +92,8 @@ app.get('/api/data', auth, async (req, res) => {
     const transito = t.rows.map(r => ({
       id: r.id, plant: r.plant, mat: r.mat, cant: r.cant,
       ...(r.nom ? { nom: r.nom } : {}),
+      ...(r.proveedor ? { proveedor: r.proveedor } : {}),
+      ...(r.fecha_pedido ? { fechaPedido: r.fecha_pedido } : {}),
     }));
     const traslados = tr.rows.map(r => ({
       id: r.id, origen: r.origen, destino: r.destino, mat: r.mat,
@@ -164,6 +166,31 @@ app.delete('/api/factura/:id', auth, adminOnly, async (req, res) => {
   }
 });
 
+// ── REGISTRAR MATERIAL SOLICITADO ──────────────────────
+app.post('/api/transito', auth, adminOnly, async (req, res) => {
+  try {
+    const { id, plant, mat, cant, nom, proveedor, fechaPedido } = req.body;
+    await db.execute({
+      sql: `INSERT INTO transito (id, plant, mat, cant, nom, proveedor, fecha_pedido) VALUES (?,?,?,?,?,?,?)`,
+      args: [String(id || Date.now()), plant, mat, cant, nom || null, proveedor || null, fechaPedido || null],
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error registrando solicitud' });
+  }
+});
+
+// ── ELIMINAR MATERIAL SOLICITADO ───────────────────────
+app.delete('/api/transito/:id', auth, adminOnly, async (req, res) => {
+  try {
+    await db.execute({ sql: 'DELETE FROM transito WHERE id=?', args: [req.params.id] });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Error eliminando solicitud' });
+  }
+});
+
 // ── MARCAR LLEGADA DE TRÁNSITO ─────────────────────────
 app.post('/api/llegada', auth, adminOnly, async (req, res) => {
   try {
@@ -178,11 +205,11 @@ app.post('/api/llegada', auth, adminOnly, async (req, res) => {
     const stmts = [];
     const b = Date.now();
     r.rows.forEach((t, i) => {
-      // crear factura (ingreso) con la cantidad que llegó
+      // crear factura (ingreso) con la cantidad que llegó y el proveedor del pedido
       stmts.push({
         sql: `INSERT INTO facturas (id,num,prov,plant,mat,cant_ini,cant_rest,fecha,nom)
               VALUES (?,?,?,?,?,?,?,?,?)`,
-        args: [String(b + i), 'LLEGADA-TRANSITO', 'Entrega recibida', plant, mat, t.cant, t.cant, new Date().toISOString().split('T')[0], t.nom || null],
+        args: [String(b + i), 'LLEGADA-SOLICITUD', t.proveedor || 'Entrega recibida', plant, mat, t.cant, t.cant, new Date().toISOString().split('T')[0], t.nom || null],
       });
     });
     // eliminar de tránsito
