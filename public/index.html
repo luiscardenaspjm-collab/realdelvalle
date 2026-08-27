@@ -177,6 +177,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#BA7517;box-sh
     <button class="mnb" data-tab="salidas" onclick="goTab('salidas')">Salidas</button>
     <button class="mnb" data-tab="trazabilidad" onclick="goTab('trazabilidad')">Trazabilidad</button>
     <button class="mnb" data-tab="traslados" onclick="goTab('traslados')">Traslados</button>
+    <button class="mnb" data-tab="programados" onclick="goTab('programados')">Programados</button>
   </nav>
 </header>
 <div id="ptabs" class="ptabs" style="display:none"></div>
@@ -272,7 +273,7 @@ const rdvCode=(id)=>MAT_IDX[id]?.rdv||'';
 // ═══════════════════════════════════════
 //  ESTADO
 // ═══════════════════════════════════════
-let DB={facturas:[],granel:[],salidas:[],transito:[],traslados:[]};
+let DB={facturas:[],granel:[],salidas:[],transito:[],traslados:[],programados:[]};
 let UI={
   tab:'dashboard',plant:'degollado',invView:'material',
   wiz:{step:1,camion:'',plant:'cuermaro',fecha:hoy(),prods:[]},
@@ -283,7 +284,9 @@ let UI={
   sim:{prods:[]},
   tsl:{origen:'degollado',destino:'cuermaro',mat:'bot_1l',qty:'',fecha:new Date().toISOString().split('T')[0],nota:''},
   editFact:null,
-  collapsedCats:new Set()
+  collapsedCats:new Set(),
+  prog:{camion:'',plant:'degollado',fecha:new Date().toISOString().split('T')[0],prods:[],notas:''},
+  editProg:null
 };
 
 function hoy(){return new Date().toISOString().split('T')[0];}
@@ -342,6 +345,7 @@ async function loadDB(){
     DB.salidas=d.salidas||[];
     DB.transito=d.transito||[];
     DB.traslados=d.traslados||[];
+    DB.programados=d.programados||[];
   }catch(e){ console.error(e); }
 }
 // ═══════════════════════════════════════
@@ -394,8 +398,8 @@ function render(){
   // viewer de planta: forzar planta
   if(restrictedPlant) UI.plant=restrictedPlant;
   // Pestañas visibles por rol
-  const editTabs=['ingresos','granel','salidas','traslados'];
-  const plantOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad'];
+  const editTabs=['ingresos','granel','salidas','traslados','programados'];
+  const plantOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad','programados'];
   document.querySelectorAll('.mnb').forEach(b=>{
     const t=b.getAttribute('data-tab');
     if(restrictedPlant && plantOnlyTabs.includes(t)) b.style.display='none';
@@ -404,7 +408,7 @@ function render(){
   });
   if(restrictedPlant && plantOnlyTabs.includes(UI.tab)) UI.tab='dashboard';
   if(!admin && !restrictedPlant && editTabs.includes(UI.tab)) UI.tab='dashboard';
-  const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados'];
+  const tabs=['dashboard','inventario','ingresos','granel','salidas','trazabilidad','traslados','programados'];
   document.querySelectorAll('.mnb').forEach((b,i)=>b.classList.toggle('act',tabs[i]===UI.tab));
   const ptEl=document.getElementById('ptabs');
   const showPt=['inventario','ingresos'].includes(UI.tab);
@@ -424,6 +428,7 @@ function render(){
   else if(UI.tab==='granel')     app.innerHTML=rGranel();
   else if(UI.tab==='salidas')    app.innerHTML=rSal();
   else if(UI.tab==='traslados')  app.innerHTML=rTraslados();
+  else if(UI.tab==='programados')app.innerHTML=rProgramados();
   else                           app.innerHTML=rTraz();
 }
 
@@ -464,13 +469,20 @@ function rDash(){
     </div>`;
   }).join('');
 
-  const recSal=DB.salidas.slice(0,6);
+  const hoyStr=new Date().toISOString().split('T')[0];
+  const proxEmb=DB.programados.filter(p=>p.fecha>=hoyStr).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
+  const proxRows=proxEmb.length===0?'<tr><td colspan="4" class="empty">Sin embarques programados</td></tr>'
+    :proxEmb.map(p=>{const pl=PLANT_IDX[p.plant];const pts=p.productos.map(pr=>`${PROD_IDX[pr.prodId]?.nom||pr.prodId} ×${pr.tarimas}`).join(' · ');return `<tr><td style="font-weight:600;font-size:11px;font-family:'SF Mono',monospace">${p.camion}</td><td>${p.fecha}</td><td style="font-size:11px">${pts}</td><td><span class="badge b-warn">Programado</span></td></tr>`;}).join('');
   const sRows=recSal.length===0?'<tr><td colspan="6" class="empty">Sin salidas registradas</td></tr>'
     :recSal.map(s=>{const pl=PLANT_IDX[s.plant];const pts=s.productos.map(p=>`${PROD_IDX[p.prodId]?.nom} ×${p.tarimas}`).join(' / ');const fns=[...new Set(s.consumos.map(c=>{const f=DB.facturas.find(x=>String(x.id)===String(c.fid));return f?.num||'?'}))];const lns=s.consumosGranel?[...new Set(s.consumosGranel.map(c=>c.lote))]:[];return `<tr><td>${s.fecha}</td><td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:4px"></span>${pl?.nom}</td><td style="font-weight:500">${s.camion}</td><td style="font-size:11px">${pts}</td><td style="font-size:10px;color:#aaa">${fns.join(', ')}</td><td style="font-size:10px;color:#0F6E56">${lns.join(', ')||'—'}</td></tr>`;}).join('');
 
   return `${metrics}<div class="dash-grid">${pCards}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card"><div class="card-h"><span class="card-title">Últimas salidas de camión</span></div>
-    <div class="ox"><table><thead><tr><th class="tl">Fecha</th><th class="tl">Planta</th><th class="tl">Camión</th><th class="tl">Productos</th><th class="tl">Facturas</th><th class="tl" style="color:#0F6E56">Lotes granel</th></tr></thead><tbody>${sRows}</tbody></table></div></div>`;
+    <div class="ox"><table><thead><tr><th class="tl">Fecha</th><th class="tl">Planta</th><th class="tl">Camión</th><th class="tl">Productos</th><th class="tl">Facturas</th><th class="tl" style="color:#0F6E56">Lotes granel</th></tr></thead><tbody>${sRows}</tbody></table></div></div>
+    <div class="card"><div class="card-h"><span class="card-title">Próximos embarques programados</span><button class="btn btn-gh btn-sm" onclick="goTab('programados')">Ver todos</button></div>
+    <div class="ox"><table><thead><tr><th class="tl">Camión</th><th class="tl">Fecha</th><th class="tl">Productos</th><th></th></tr></thead><tbody>${proxRows}</tbody></table></div></div>
+    </div>`;
 }
 
 // ── INVENTARIO ─────────────────────────────────────────
@@ -536,12 +548,14 @@ function rInvMaterial(){
       const collapsed=UI.collapsedCats.has(cat+UI.plant);
       const count=cr.split('<tr>').length-1;
       rows+=`<tr class="cat-row" onclick="toggleCat('${cat+UI.plant}')" style="cursor:pointer;user-select:none">
-        <td colspan="${nCols}" style="display:flex;align-items:center;justify-content:space-between">
-          <span>${cat}</span>
-          <span style="font-size:10px;color:#bbb;display:flex;align-items:center;gap:6px">
-            ${collapsed?`<span style="color:#BA7517">${count} materiales</span>`:''}
-            <span style="font-size:12px">${collapsed?'▶':'▼'}</span>
-          </span>
+        <td colspan="${nCols}">
+          <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+            <span>${cat}</span>
+            <span style="font-size:10px;color:#bbb;display:flex;align-items:center;gap:6px">
+              ${collapsed?`<span style="color:#BA7517">${count} materiales</span>`:''}
+              <span style="font-size:12px">${collapsed?'▶':'▼'}</span>
+            </span>
+          </div>
         </td>
       </tr>${collapsed?'':cr}`;
     }
@@ -1003,6 +1017,87 @@ async function regTraslado(){
     toast(`✓ ${fmt(qty)} ${mnom} · ${pO} → ${pD}`);
     UI.tsl.qty='';UI.tsl.nota='';render();
   }catch(e){toast('Error al registrar traslado',true);}
+}
+
+// ── EMBARQUES PROGRAMADOS ──────────────────────────────
+function rProgramados(){
+  const prOpts=PRODUCTOS.map(pr=>`<option value="${pr.id}">${pr.nom}</option>`).join('');
+  const plantOpts=PLANTAS.map(p=>`<option value="${p.id}"${UI.prog.plant===p.id?' selected':''}>${p.nom}</option>`).join('');
+  const items=UI.prog.prods.map((sp,i)=>{const pr=PROD_IDX[sp.prodId];return `<span class="sim-chip"><strong>${pr?.nom}</strong> · ${sp.tarimas} tar <span onclick="quitarProgProd(${i})" style="cursor:pointer;color:#B02E1E;margin-left:6px;font-weight:700">✕</span></span>`;}).join('');
+
+  const hoy2=new Date().toISOString().split('T')[0];
+  const proximos=DB.programados.filter(p=>p.fecha>=hoy2).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const pasados=DB.programados.filter(p=>p.fecha<hoy2).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+
+  const renderList=(list,titulo)=>{
+    if(!list.length)return'';
+    const rows=list.map(p=>{
+      const pl=PLANT_IDX[p.plant];
+      const pts=p.productos.map(pr=>`${PROD_IDX[pr.prodId]?.nom||pr.prodId} ×${pr.tarimas}`).join(' · ');
+      const isPast=p.fecha<hoy2;
+      return `<tr>
+        <td style="font-weight:600;font-family:'SF Mono',monospace;font-size:11px">${p.camion}</td>
+        <td>${p.fecha}</td>
+        <td><span class="dot" style="background:${pl?.color};display:inline-block;margin-right:4px;width:7px;height:7px;border-radius:50%"></span>${pl?.nom}</td>
+        <td style="font-size:11px;color:#555">${pts}</td>
+        <td style="font-size:11px;color:#aaa">${p.notas||'—'}</td>
+        <td><button class="btn btn-sm" style="background:#FFF0F0;color:#B02E1E;border:0.5px solid #F0C0C0" onclick="eliminarProgramado('${p.id}','${p.camion}')">🗑</button></td>
+      </tr>`;
+    }).join('');
+    return `<div class="card" style="margin-bottom:16px">
+      <div class="card-h"><span class="card-title">${titulo}</span><span style="font-size:11px;color:#bbb">${list.length} embarques</span></div>
+      <div class="ox"><table><thead><tr><th class="tl">Camión</th><th class="tl">Fecha</th><th class="tl">Bodega</th><th class="tl">Productos</th><th class="tl">Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+  };
+
+  return `<div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span class="card-title">Registrar embarque programado</span></div>
+    <div class="card-body" style="padding:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end;margin-bottom:12px">
+        <div class="fg"><label>N° Camión</label><input type="text" value="${UI.prog.camion}" placeholder="26-RDV-DGO-CA-32" oninput="UI.prog.camion=this.value"></div>
+        <div class="fg"><label>Bodega origen</label><select onchange="UI.prog.plant=this.value;render()">${plantOpts}</select></div>
+        <div class="fg"><label>Fecha embarque</label><input type="date" value="${UI.prog.fecha}" onchange="UI.prog.fecha=this.value"></div>
+        <div class="fg"><label>Notas</label><input type="text" value="${UI.prog.notas}" placeholder="Observaciones..." oninput="UI.prog.notas=this.value"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:${UI.prog.prods.length?'10px':'0'}">
+        <div class="fg" style="margin:0"><label>Producto</label><select id="progProd">${prOpts}</select></div>
+        <div class="fg" style="margin:0"><label>Tarimas</label><input type="number" id="progTar" min="1" value="1" style="width:80px"></div>
+        <button class="btn btn-gh btn-sm" onclick="addProgProd()">+ Agregar</button>
+        ${UI.prog.prods.length?`<button class="btn btn-pr" onclick="regProgramado()">💾 Guardar embarque</button>`:''}
+      </div>
+      ${UI.prog.prods.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${items}</div>`:''}
+    </div>
+  </div>
+  ${renderList(proximos,'Próximos embarques')||`<div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:16px;color:#bbb;font-size:12px;text-align:center">No hay embarques programados próximos</div></div>`}
+  ${renderList(pasados,'Embarques pasados')}`;
+}
+
+function addProgProd(){const pid=document.getElementById('progProd')?.value;const tars=parseInt(document.getElementById('progTar')?.value)||1;if(!pid)return;const ex=UI.prog.prods.find(p=>p.prodId===pid);if(ex)ex.tarimas+=tars;else UI.prog.prods.push({prodId:pid,tarimas:tars});render();}
+function quitarProgProd(i){UI.prog.prods.splice(i,1);render();}
+
+async function regProgramado(){
+  if(!UI.prog.camion.trim()){toast('Ingresa el número de camión',true);return;}
+  if(!UI.prog.prods.length){toast('Agrega al menos un producto',true);return;}
+  const entry={id:Date.now(),camion:UI.prog.camion.trim(),plant:UI.prog.plant,fecha:UI.prog.fecha,productos:[...UI.prog.prods],notas:UI.prog.notas.trim()};
+  try{
+    const res=await api('/api/programados',{method:'POST',body:JSON.stringify(entry)});
+    if(!res.ok)throw new Error();
+    DB.programados.push(entry);
+    DB.programados.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    toast(`✓ ${entry.camion} programado para ${entry.fecha}`);
+    UI.prog={camion:'',plant:UI.prog.plant,fecha:hoy(),prods:[],notas:''};
+    render();
+  }catch(e){toast('Error al guardar',true);}
+}
+
+async function eliminarProgramado(id,camion){
+  if(!confirm(`¿Eliminar el embarque ${camion}?`))return;
+  try{
+    const res=await api(`/api/programados/${id}`,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    DB.programados=DB.programados.filter(p=>String(p.id)!==String(id));
+    toast(`✓ Embarque ${camion} eliminado`);render();
+  }catch(e){toast('Error al eliminar',true);}
 }
 
 // ── TRAZABILIDAD ───────────────────────────────────────
