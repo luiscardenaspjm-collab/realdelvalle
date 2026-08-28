@@ -411,8 +411,8 @@ function render(){
   // viewer de planta: forzar planta
   if(restrictedPlant) UI.plant=restrictedPlant;
   // Pestañas visibles por rol
-  const editTabs=['ingresos','granel','salidas','traslados','programados'];
-  const plantOnlyTabs=['ingresos','granel','salidas','traslados','trazabilidad','programados'];
+  const editTabs=['ingresos','granel','traslados','programados'];
+  const plantOnlyTabs=['ingresos','granel','traslados','programados'];
   document.querySelectorAll('.mnb').forEach(b=>{
     const t=b.getAttribute('data-tab');
     if(restrictedPlant && plantOnlyTabs.includes(t)) b.style.display='none';
