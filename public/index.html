@@ -635,9 +635,10 @@ function rInvMaterial(){
   const simLit=simOn?litrosNecesarios(UI.sim.prods):{Blanco:0,Reposado:0};
   let rows='',anyMat=false;
   const catsVisibles=CATS.filter(cat=>cat!=='Embalaje'||EMBALAJE_PLANTS.includes(UI.plant));
+  const matsPermitidos=isViewerEmb()?new Set(PROD_MATS_PLANTA['embajador']):null;
   catsVisibles.forEach(cat=>{
     let cr='',catHas=false;
-    MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(UI.plant))).forEach(m=>{
+    MATS.filter(m=>m.cat===cat&&(!m.soloPlants||m.soloPlants.includes(UI.plant))&&(!matsPermitidos||matsPermitidos.has(m.id))).forEach(m=>{
       const facts=DB.facturas.filter(f=>f.plant===UI.plant&&f.mat===m.id);
       const trans=transitoMat(UI.plant,m.id);
       if(!facts.length&&trans<=0)return;
